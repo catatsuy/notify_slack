@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -14,15 +16,26 @@ func main() {
 		channel  string
 		username string
 		slackURL string
+		text     string
 	)
 
 	flag.StringVar(&channel, "channel", "", "specify channel")
 	flag.StringVar(&slackURL, "slack-url", "", "slack url")
 	flag.StringVar(&username, "username", "", "specify username")
+	flag.StringVar(&text, "text", "", "text")
 	flag.Parse()
 
 	if slackURL == "" {
 		return
+	}
+
+	if text == "" {
+		// 標準入力を待つ
+		b, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatal(err)
+		}
+		text = string(b)
 	}
 
 	b, _ := json.Marshal(struct {
@@ -33,7 +46,7 @@ func main() {
 	}{
 		Channel:   channel,
 		Username:  username,
-		Text:      "This is posted to #tester",
+		Text:      text,
 		IconEmoji: ":rocket:",
 	})
 
