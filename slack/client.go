@@ -68,6 +68,10 @@ func (c *Client) newRequest(ctx context.Context, method string, body io.Reader) 
 }
 
 func (c *Client) PostText(ctx context.Context, param *SlackPostTextParam) error {
+	if param.Text == "" {
+		return nil
+	}
+
 	b, _ := json.Marshal(param)
 
 	req, err := c.newRequest(ctx, "POST", bytes.NewBuffer(b))
