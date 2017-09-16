@@ -1,14 +1,13 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/catatsuy/notify_slack/slack"
 )
 
 func main() {
@@ -38,32 +37,20 @@ func main() {
 		text = string(b)
 	}
 
-	b, _ := json.Marshal(struct {
-		Channel   string `json:"channel,omitempty"`
-		Username  string `json:"username,omitempty"`
-		Text      string `json:"text"`
-		IconEmoji string `json:"icon_emoji,omitempty"`
-	}{
+	c, err := slack.NewClient(slackURL, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	param := &slack.SlackPostTextParam{
 		Channel:   channel,
 		Username:  username,
 		Text:      text,
 		IconEmoji: ":rocket:",
-	})
+	}
 
-	req, err := http.NewRequest("POST", slackURL, bytes.NewBuffer(b))
+	err = c.PostText(context.Background(), param)
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(body))
 }
