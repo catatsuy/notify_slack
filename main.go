@@ -3,25 +3,41 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
 func main() {
+	var (
+		channel  string
+		username string
+		slackURL string
+	)
+
+	flag.StringVar(&channel, "channel", "", "specify channel")
+	flag.StringVar(&slackURL, "slack-url", "", "slack url")
+	flag.StringVar(&username, "username", "", "specify username")
+	flag.Parse()
+
+	if slackURL == "" {
+		return
+	}
+
 	b, _ := json.Marshal(struct {
-		Channel   string `json:"channel"`
-		Username  string `json:"username"`
+		Channel   string `json:"channel,omitempty"`
+		Username  string `json:"username,omitempty"`
 		Text      string `json:"text"`
-		IconEmoji string `json:"icon_emoji"`
+		IconEmoji string `json:"icon_emoji,omitempty"`
 	}{
-		Channel:   "#tester",
-		Username:  "waiwai",
+		Channel:   channel,
+		Username:  username,
 		Text:      "This is posted to #tester",
-		IconEmoji: ":ghost:",
+		IconEmoji: ":rocket:",
 	})
 
-	req, err := http.NewRequest("POST", "https://hooks.slack.com/services/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", bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", slackURL, bytes.NewBuffer(b))
 	if err != nil {
 		panic(err)
 	}
