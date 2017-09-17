@@ -76,8 +76,6 @@ func main() {
 	interval := time.Tick(duration)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	tw.Setup()
-
 	select {
 	case <-c:
 	case <-tw.Run(ctx, interval, flushCallback, doneCallback):

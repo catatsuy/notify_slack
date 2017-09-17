@@ -26,7 +26,7 @@ func NewWriter(input io.Reader, output *bytes.Buffer) *ThrottleWriter {
 	return tw
 }
 
-func (tw *ThrottleWriter) Setup() {
+func (tw *ThrottleWriter) Run(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) <-chan struct{} {
 	go func() {
 		for tw.sc.Scan() {
 			_, err := tw.writer.Write(tw.sc.Bytes())
@@ -41,9 +41,7 @@ func (tw *ThrottleWriter) Setup() {
 		}
 		tw.exitC <- struct{}{}
 	}()
-}
 
-func (tw *ThrottleWriter) Run(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) <-chan struct{} {
 	go func() {
 		for {
 			select {
