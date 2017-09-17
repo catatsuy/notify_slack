@@ -10,14 +10,14 @@ import (
 )
 
 type ThrottleWriter struct {
-	sc     *bufio.Scanner
+	sc     *bufio.Reader
 	writer *bytes.Buffer
 	exitC  chan struct{}
 	mu     sync.Mutex
 }
 
 func NewWriter(input io.Reader) *ThrottleWriter {
-	sc := bufio.NewScanner(input)
+	sc := bufio.NewReader(input)
 
 	tw := &ThrottleWriter{
 		sc:     sc,
@@ -55,8 +55,15 @@ func (tw *ThrottleWriter) stringAndReset() string {
 
 func (tw *ThrottleWriter) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) {
 	go func() {
-		for tw.sc.Scan() {
-			_, err := tw.Write(tw.sc.Bytes())
+		for {
+			line, _, err := tw.sc.ReadLine()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				panic(err)
+			}
+			_, err = tw.Write(line)
 			if err != nil {
 				panic(err)
 			}
