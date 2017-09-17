@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"io"
@@ -42,8 +41,7 @@ func main() {
 
 	copyStdin := io.TeeReader(os.Stdin, os.Stdout)
 
-	buf := new(bytes.Buffer)
-	tw := throttle.NewWriter(copyStdin, buf)
+	tw := throttle.NewWriter(copyStdin)
 
 	c := make(chan os.Signal, 0)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
@@ -54,7 +52,7 @@ func main() {
 		IconEmoji: ":rocket:",
 	}
 
-	flushCallback := func(ctx context.Context, output string) error {
+	flushCallback := func(_ context.Context, output string) error {
 		param.Text = output
 		return sClient.PostText(context.Background(), param)
 	}
@@ -72,9 +70,11 @@ func main() {
 	interval := time.Tick(duration)
 	ctx, cancel := context.WithCancel(context.Background())
 
+	tw.Start(ctx, interval, flushCallback, doneCallback)
+
 	select {
 	case <-c:
-	case <-tw.Run(ctx, interval, flushCallback, doneCallback):
+	case <-tw.Wait():
 	}
 	cancel()
 
