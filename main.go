@@ -62,15 +62,11 @@ func main() {
 	done := make(chan struct{}, 0)
 
 	doneCallback := func(ctx context.Context, output string) error {
-		err := flushCallback(ctx, output)
+		defer func() {
+			done <- struct{}{}
+		}()
 
-		if err != nil {
-			return err
-		}
-
-		done <- struct{}{}
-
-		return nil
+		return flushCallback(ctx, output)
 	}
 
 	interval := time.Tick(duration)
