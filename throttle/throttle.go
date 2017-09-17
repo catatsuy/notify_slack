@@ -2,44 +2,66 @@ package throttle
 
 import (
 	"bufio"
+	"bytes"
+	"context"
 	"io"
+	"time"
 )
 
 type ThrottleWriter struct {
 	sc     *bufio.Scanner
-	writer *bufio.Writer
+	writer *bytes.Buffer
 	exitC  chan struct{}
 }
 
-func NewWriter(input io.Reader, output io.Writer) *ThrottleWriter {
+func NewWriter(input io.Reader, output *bytes.Buffer) *ThrottleWriter {
 	sc := bufio.NewScanner(input)
-	writer := bufio.NewWriter(output)
 
 	tw := &ThrottleWriter{
 		sc:     sc,
-		writer: writer,
+		writer: output,
 		exitC:  make(chan struct{}, 0),
 	}
 
 	return tw
 }
 
-func (tw *ThrottleWriter) Run() {
-	for tw.sc.Scan() {
-		if _, err := tw.writer.Write(tw.sc.Bytes()); err != nil {
-			panic(err)
+func (tw *ThrottleWriter) Setup() {
+	go func() {
+		for tw.sc.Scan() {
+			_, err := tw.writer.Write(tw.sc.Bytes())
+			if err != nil {
+				panic(err)
+			}
+
+			err = tw.writer.WriteByte('\n')
+			if err != nil {
+				panic(err)
+			}
 		}
-		if err := tw.writer.WriteByte('\n'); err != nil {
-			panic(err)
-		}
-	}
-	tw.exitC <- struct{}{}
+		tw.exitC <- struct{}{}
+	}()
 }
 
-func (tw *ThrottleWriter) Exit() <-chan struct{} {
+func (tw *ThrottleWriter) Run(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) <-chan struct{} {
+	go func() {
+		for {
+			select {
+			case <-interval:
+				flushCallback(ctx, tw.flush())
+				break
+			case <-ctx.Done():
+				doneCallback(ctx, tw.flush())
+				return
+			}
+		}
+	}()
+
 	return tw.exitC
 }
 
-func (tw *ThrottleWriter) Flush() {
-	tw.writer.Flush()
+func (tw *ThrottleWriter) flush() string {
+	defer tw.writer.Reset()
+
+	return tw.writer.String()
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -39,17 +40,13 @@ func main() {
 		panic(err)
 	}
 
-	buf := new(bytes.Buffer)
-	tw := throttle.NewWriter(os.Stdin, buf)
+	copyStdin := io.TeeReader(os.Stdin, os.Stdout)
 
-	go tw.Run()
+	buf := new(bytes.Buffer)
+	tw := throttle.NewWriter(copyStdin, buf)
 
 	c := make(chan os.Signal, 0)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
-
-	interval := time.Tick(duration)
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{}, 0)
 
 	param := &slack.SlackPostTextParam{
 		Channel:   channel,
@@ -57,40 +54,33 @@ func main() {
 		IconEmoji: ":rocket:",
 	}
 
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-interval:
-				break
-			case <-ctx.Done():
-				tw.Flush()
+	flushCallback := func(ctx context.Context, output string) error {
+		param.Text = output
+		return sClient.PostText(context.Background(), param)
+	}
 
-				param.Text = buf.String()
-				buf.Reset()
+	done := make(chan struct{}, 0)
 
-				err = sClient.PostText(context.Background(), param)
-				if err != nil {
-					panic(err)
-				}
+	doneCallback := func(ctx context.Context, output string) error {
+		err := flushCallback(ctx, output)
 
-				done <- struct{}{}
-				return
-			}
-			tw.Flush()
-
-			param.Text = buf.String()
-			buf.Reset()
-
-			err = sClient.PostText(context.Background(), param)
-			if err != nil {
-				panic(err)
-			}
+		if err != nil {
+			return err
 		}
-	}(ctx)
+
+		done <- struct{}{}
+
+		return nil
+	}
+
+	interval := time.Tick(duration)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	tw.Setup()
 
 	select {
 	case <-c:
-	case <-tw.Exit():
+	case <-tw.Run(ctx, interval, flushCallback, doneCallback):
 	}
 	cancel()
 
