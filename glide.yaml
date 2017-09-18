@@ -1,0 +1,7 @@
+package: github.com/catatsuy/notify_slack
+import:
+- package: github.com/mitchellh/go-homedir
+- package: github.com/pelletier/go-toml
+  version: ~1.0.0
+- package: github.com/pkg/errors
+  version: ~0.8.0
