@@ -3,6 +3,7 @@ package throttle
 import (
 	"bytes"
 	"context"
+	"io"
 	"runtime"
 	"testing"
 	"time"
@@ -11,10 +12,11 @@ import (
 func TestRun(t *testing.T) {
 	runtime.GOMAXPROCS(1)
 
-	input := new(bytes.Buffer)
+	pr, pw := io.Pipe()
+
 	output := new(bytes.Buffer)
 
-	ex := NewExec(input)
+	ex := NewExec(pr)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	testC := make(chan time.Time, 0)
@@ -33,7 +35,21 @@ func TestRun(t *testing.T) {
 		return nil
 	}
 
-	ex.Start(ctx, testC, flushCallback, flushCallback)
+	doneCount := 0
+
+	doneCallback := func(_ context.Context, s string) error {
+		defer func() {
+			fc <- struct{}{}
+		}()
+
+		doneCount++
+
+		output.WriteString(s)
+
+		return nil
+	}
+
+	ex.Start(ctx, testC, flushCallback, doneCallback)
 
 	testC <- time.Time{}
 	<-fc
@@ -42,13 +58,11 @@ func TestRun(t *testing.T) {
 		t.Error("the flushCallback function has not been called")
 	}
 
-	expected := "abcd\nefgh\n"
+	expected := []byte("abcd\nefgh\n")
+	pw.Write(expected)
 
-	input.WriteString(expected)
-	time.Sleep(time.Millisecond)
-
-	if s := output.String(); s != "" {
-		t.Error("will not be written if it is not flushed %s", s)
+	if b := output.Bytes(); b != nil {
+		t.Error("will not be written if it is not flushed %s", b)
 	}
 
 	testC <- time.Time{}
@@ -58,9 +72,27 @@ func TestRun(t *testing.T) {
 		t.Errorf("the flushCallback function has not been called")
 	}
 
-	if s := output.String(); s != expected {
-		t.Errorf("It will be written %q; but %q", expected, s)
+	if b := output.Bytes(); !bytes.Equal(b, expected) {
+		t.Errorf("It will be written %q; but %q", expected, b)
 	}
 
+	output.Reset()
+
+	expected = []byte("ijk\nlmn\n")
+	pw.Write(expected)
+
+	// do not panic
+	pw.Close()
+	<-ex.Wait()
+
 	cancel()
+	<-fc
+
+	if doneCount != 1 {
+		t.Errorf("the doneCallback function has not been called")
+	}
+
+	if b := output.Bytes(); !bytes.Equal(b, expected) {
+		t.Errorf("It will be written %q; but %q", expected, b)
+	}
 }
