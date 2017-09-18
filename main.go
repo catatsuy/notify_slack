@@ -41,7 +41,7 @@ func main() {
 
 	copyStdin := io.TeeReader(os.Stdin, os.Stdout)
 
-	tw := throttle.NewWriter(copyStdin)
+	ex := throttle.NewExec(copyStdin)
 
 	c := make(chan os.Signal, 0)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
@@ -70,11 +70,11 @@ func main() {
 	interval := time.Tick(duration)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	tw.Start(ctx, interval, flushCallback, doneCallback)
+	ex.Start(ctx, interval, flushCallback, doneCallback)
 
 	select {
 	case <-c:
-	case <-tw.Wait():
+	case <-ex.Wait():
 	}
 	cancel()
 
