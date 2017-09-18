@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
+	toml "github.com/pelletier/go-toml"
 )
 
 func main() {
@@ -18,17 +20,36 @@ func main() {
 		channel  string
 		username string
 		slackURL string
-		text     string
+		tomlFile string
 		duration time.Duration
 	)
 
 	flag.StringVar(&channel, "channel", "", "specify channel")
 	flag.StringVar(&slackURL, "slack-url", "", "slack url")
 	flag.StringVar(&username, "username", "", "specify username")
-	flag.StringVar(&text, "text", "", "text")
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
+	flag.StringVar(&tomlFile, "f", "", "config file name")
 
 	flag.Parse()
+
+	if tomlFile != "" {
+		b, err := ioutil.ReadFile(tomlFile)
+		if err != nil {
+			panic(err)
+		}
+		config, err := toml.LoadBytes(b)
+		slackConfig := config.Get("slack").(*toml.Tree)
+
+		if slackURL == "" {
+			slackURL = slackConfig.Get("url").(string)
+		}
+		if channel == "" {
+			channel = slackConfig.Get("channel").(string)
+		}
+		if username == "" {
+			username = slackConfig.Get("username").(string)
+		}
+	}
 
 	if slackURL == "" {
 		return
