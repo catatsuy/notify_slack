@@ -26,6 +26,7 @@ func main() {
 	flag.StringVar(&conf.Channel, "channel", "", "specify channel")
 	flag.StringVar(&conf.SlackURL, "slack-url", "", "slack url")
 	flag.StringVar(&conf.Username, "username", "", "specify username")
+	flag.StringVar(&conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
 	flag.StringVar(&tomlFile, "f", "", "config file name")
@@ -57,7 +58,7 @@ func main() {
 	param := &slack.PostTextParam{
 		Channel:   conf.Channel,
 		Username:  conf.Username,
-		IconEmoji: ":rocket:",
+		IconEmoji: conf.IconEmoji,
 	}
 
 	flushCallback := func(_ context.Context, output string) error {

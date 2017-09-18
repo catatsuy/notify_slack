@@ -9,16 +9,18 @@ import (
 )
 
 type Config struct {
-	SlackURL string
-	Channel  string
-	Username string
+	SlackURL  string
+	Channel   string
+	Username  string
+	IconEmoji string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		SlackURL: "",
-		Channel:  "",
-		Username: "",
+		SlackURL:  "",
+		Channel:   "",
+		Username:  "",
+		IconEmoji: "",
 	}
 }
 
@@ -36,13 +38,28 @@ func (c *Config) LoadTOML(filename string) error {
 	slackConfig := config.Get("slack").(*toml.Tree)
 
 	if c.SlackURL == "" {
-		c.SlackURL = slackConfig.Get("url").(string)
+		slackURL, ok := slackConfig.Get("url").(string)
+		if ok {
+			c.SlackURL = slackURL
+		}
 	}
 	if c.Channel == "" {
-		c.Channel = slackConfig.Get("channel").(string)
+		channel, ok := slackConfig.Get("channel").(string)
+		if ok {
+			c.Channel = channel
+		}
 	}
 	if c.Username == "" {
-		c.Username = slackConfig.Get("username").(string)
+		username, ok := slackConfig.Get("username").(string)
+		if ok {
+			c.Username = username
+		}
+	}
+	if c.IconEmoji == "" {
+		iconEmoji, ok := slackConfig.Get("icon_emoji").(string)
+		if ok {
+			c.IconEmoji = iconEmoji
+		}
 	}
 
 	return nil
