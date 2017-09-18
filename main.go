@@ -46,7 +46,7 @@ func main() {
 	c := make(chan os.Signal, 0)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
-	param := &slack.SlackPostTextParam{
+	param := &slack.PostTextParam{
 		Channel:   channel,
 		Username:  username,
 		IconEmoji: ":rocket:",

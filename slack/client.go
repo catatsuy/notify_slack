@@ -21,7 +21,7 @@ type Client struct {
 	Logger *log.Logger
 }
 
-type SlackPostTextParam struct {
+type PostTextParam struct {
 	Channel   string `json:"channel,omitempty"`
 	Username  string `json:"username,omitempty"`
 	Text      string `json:"text"`
@@ -67,7 +67,7 @@ func (c *Client) newRequest(ctx context.Context, method string, body io.Reader) 
 	return req, nil
 }
 
-func (c *Client) PostText(ctx context.Context, param *SlackPostTextParam) error {
+func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	if param.Text == "" {
 		return nil
 	}
