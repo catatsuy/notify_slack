@@ -29,7 +29,7 @@ func main() {
 	flag.StringVar(&conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
-	flag.StringVar(&tomlFile, "f", "", "config file name")
+	flag.StringVar(&tomlFile, "c", "", "config file name")
 
 	flag.Parse()
 
