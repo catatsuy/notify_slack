@@ -1,12 +1,10 @@
-hash: 644d665e5e59d8eefa49d67a07e211082c185edef27750699b0652e611760ad3
-updated: 2017-09-18T19:29:49.192627477+09:00
+hash: f59b52ee50ecc191e86aa70fc932430445f550a61192b6a7674c3afc1675deb5
+updated: 2017-09-18T20:02:06.698997024+09:00
 imports:
 - name: github.com/mitchellh/go-homedir
   version: 756f7b183b7ab78acdbbee5c7f392838ed459dda
-- name: github.com/pelletier/go-buffruneio
-  version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
-  version: 5ccdfb18c776b740aecaf085c4d9a2779199c279
+  version: 1d6b12b7cb290426e27e6b4e38b89fcda3aeef03
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 testImports: []
