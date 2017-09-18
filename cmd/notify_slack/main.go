@@ -4,58 +4,45 @@ import (
 	"context"
 	"flag"
 	"io"
-	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/catatsuy/notify_slack/config"
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
-	toml "github.com/pelletier/go-toml"
 )
 
 func main() {
 	var (
-		channel  string
-		username string
-		slackURL string
 		tomlFile string
 		duration time.Duration
 	)
 
-	flag.StringVar(&channel, "channel", "", "specify channel")
-	flag.StringVar(&slackURL, "slack-url", "", "slack url")
-	flag.StringVar(&username, "username", "", "specify username")
+	conf := config.NewConfig()
+
+	flag.StringVar(&conf.Channel, "channel", "", "specify channel")
+	flag.StringVar(&conf.SlackURL, "slack-url", "", "slack url")
+	flag.StringVar(&conf.Username, "username", "", "specify username")
+
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
 	flag.StringVar(&tomlFile, "f", "", "config file name")
 
 	flag.Parse()
 
+	tomlFile = config.LoadTOMLFilename(tomlFile)
+
 	if tomlFile != "" {
-		b, err := ioutil.ReadFile(tomlFile)
-		if err != nil {
-			panic(err)
-		}
-		config, err := toml.LoadBytes(b)
-		slackConfig := config.Get("slack").(*toml.Tree)
-
-		if slackURL == "" {
-			slackURL = slackConfig.Get("url").(string)
-		}
-		if channel == "" {
-			channel = slackConfig.Get("channel").(string)
-		}
-		if username == "" {
-			username = slackConfig.Get("username").(string)
-		}
+		conf.LoadTOML(tomlFile)
 	}
 
-	if slackURL == "" {
-		return
+	if conf.SlackURL == "" {
+		log.Fatal("provide Slack URL")
 	}
 
-	sClient, err := slack.NewClient(slackURL, nil)
+	sClient, err := slack.NewClient(conf.SlackURL, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -68,8 +55,8 @@ func main() {
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
 	param := &slack.PostTextParam{
-		Channel:   channel,
-		Username:  username,
+		Channel:   conf.Channel,
+		Username:  conf.Username,
 		IconEmoji: ":rocket:",
 	}
 
