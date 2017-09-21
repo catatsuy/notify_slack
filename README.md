@@ -2,6 +2,12 @@
 
 Notify slack from the command line. It receives standard input and notifies Slack all at once every second (can be changed with the `-interval` option).
 
+## Installation
+
+```
+go get github.com/catatsuy/notify_slack/cmd/notify_slack
+```
+
 ## usage
 
 ```sh
