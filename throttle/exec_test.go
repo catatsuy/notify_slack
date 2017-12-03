@@ -62,7 +62,7 @@ func TestRun(t *testing.T) {
 	pw.Write(expected)
 
 	if b := output.Bytes(); b != nil {
-		t.Error("will not be written if it is not flushed %s", b)
+		t.Errorf("will not be written if it is not flushed %s", b)
 	}
 
 	testC <- time.Time{}
