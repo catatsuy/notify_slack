@@ -43,7 +43,7 @@ func main() {
 		log.Fatal("provide Slack URL")
 	}
 
-	sClient, err := slack.NewClient(conf.SlackURL, nil)
+	sClient, err := slack.NewClient(conf.SlackURL, "", nil)
 	if err != nil {
 		panic(err)
 	}

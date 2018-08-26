@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewClient_badURL(t *testing.T) {
-	_, err := NewClient("", nil)
+	_, err := NewClient("", "", nil)
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -25,7 +25,7 @@ func TestNewClient_badURL(t *testing.T) {
 }
 
 func TestNewClient_parsesURL(t *testing.T) {
-	client, err := NewClient("https://example.com/foo/bar", nil)
+	client, err := NewClient("https://example.com/foo/bar", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,6 +53,12 @@ func TestPostText_Success(t *testing.T) {
 	}
 
 	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get("Content-Type")
+		expectedType := "application/json"
+		if contentType != expectedType {
+			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			t.Fatal(err)
@@ -72,7 +78,7 @@ func TestPostText_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_ok.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +107,7 @@ func TestPostText_Fail(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_fail.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,6 +119,173 @@ func TestPostText_Fail(t *testing.T) {
 	}
 
 	expected := "status code: 404"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected %q to contain %q", err.Error(), expected)
+	}
+}
+
+func TestPostFile_Success(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	param := &PostFileParam{
+		Channel:  "test-channel",
+		Content:  "testtesttest",
+		Filename: "test.txt",
+	}
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get("Content-Type")
+		expectedType := "application/x-www-form-urlencoded"
+		if contentType != expectedType {
+			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		bodyBytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer r.Body.Close()
+
+		actualV, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expectedV := url.Values{}
+		expectedV.Set("token", slackToken)
+		expectedV.Set("content", param.Content)
+		expectedV.Set("filename", param.Filename)
+		expectedV.Set("channels", param.Channel)
+
+		if !reflect.DeepEqual(actualV, expectedV) {
+			t.Fatalf("expected %q to equal %q", actualV, expectedV)
+		}
+
+		http.ServeFile(w, r, "testdata/post_files_upload_ok.json")
+	})
+
+	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+
+	c, err := NewClient("https://example.com", slackToken, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.PostFile(context.Background(), param)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPostFile_FailNotOk(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	param := &PostFileParam{
+		Channel:  "test-channel",
+		Content:  "testtesttest",
+		Filename: "test.txt",
+	}
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "testdata/post_files_upload_fail.json")
+	})
+
+	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+
+	c, err := NewClient("https://example.com", slackToken, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.PostFile(context.Background(), param)
+
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	}
+
+	expected := `response has failed; body: {"ok":false,"error":"invalid_auth"}`
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected %q to contain %q", err.Error(), expected)
+	}
+}
+
+func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	param := &PostFileParam{
+		Channel:  "test-channel",
+		Content:  "testtesttest",
+		Filename: "test.txt",
+	}
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		http.ServeFile(w, r, "testdata/post_files_upload_fail.json")
+	})
+
+	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+
+	c, err := NewClient("https://example.com", slackToken, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.PostFile(context.Background(), param)
+
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	}
+
+	expected := `Failed to read res.Body and the status code of the response from slack was not 200; body: {"ok":false,"error":"invalid_auth"}`
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected %q to contain %q", err.Error(), expected)
+	}
+}
+
+func TestPostFile_FailNotJSON(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	param := &PostFileParam{
+		Channel:  "test-channel",
+		Content:  "testtesttest",
+		Filename: "test.txt",
+	}
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "testdata/post_text_fail.html")
+	})
+
+	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+
+	c, err := NewClient("https://example.com", slackToken, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.PostFile(context.Background(), param)
+
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	}
+
+	expected := `response returned from slack is not json`
 	if !strings.Contains(err.Error(), expected) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expected)
 	}

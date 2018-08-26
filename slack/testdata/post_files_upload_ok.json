@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "file": {
+    "id": "xxxxxxx",
+    "created": 1535265940,
+    "timestamp": 1535265940,
+    "name": "tmp.txt",
+    "title": "tmp",
+    "mimetype": "text/plain",
+    "filetype": "text",
+    "pretty_type": "Plain Text",
+    "user": "xxxxxxx",
+    "editable": true,
+    "size": 10,
+    "mode": "snippet",
+    "is_external": false,
+    "external_type": "",
+    "is_public": true,
+    "public_url_shared": false,
+    "display_as_bot": false,
+    "username": "",
+    "url_private": "https://files.slack.com/files-pri/xxxxxx/tmp.txt",
+    "url_private_download": "https://files.slack.com/files-pri/xxxx/download/tmp.txt",
+    "permalink": "https://xxxx.slack.com/files/xxxxx/tmp.txt",
+    "permalink_public": "https://slack-files.com/xxxx",
+    "edit_link": "https://xxxx.slack.com/files/xxxxxxx/tmp.txt/edit",
+    "preview": "aaaaafhaaa",
+    "preview_highlight": "<div class=\"CodeMirror cm-s-default CodeMirrorServer\" oncopy=\"if(event.clipboardData){event.clipboardData.setData('text/plain',window.getSelection().toString().replace(/\\u200b/g,''));event.preventDefault();event.stopPropagation();}\">\n<div class=\"CodeMirror-code\">\n<div><pre></pre></div>\n</div>\n</div>\n",
+    "lines": 1,
+    "lines_more": 0,
+    "preview_is_truncated": false,
+    "comments_count": 0,
+    "is_starred": false,
+    "shares": {
+      "public": {
+        "CCFAJ2734": [
+          {
+            "reply_users": [],
+            "reply_users_count": 0,
+            "reply_count": 0,
+            "ts": "10290",
+            "channel_name": "test",
+            "team_id": "xxxxx"
+          }
+        ]
+      }
+    },
+    "channels": [
+      "xxxxxx"
+    ],
+    "groups": [],
+    "ims": []
+  }
+}
