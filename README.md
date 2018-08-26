@@ -10,14 +10,21 @@ go get github.com/catatsuy/notify_slack/cmd/notify_slack
 
 ## usage
 
+`./bin/notify_slack` posts to Slack. You specify the setting in command line option or toml setting file.
+If both settings are specified, command line option will always take precedence.
+
 ```sh
 ./bin/output | ./bin/notify_slack
 ```
 
-`./bin/output` is used for testing.
+`./bin/output` is used for testing. While buffering, to post to slack.
 
-`./bin/notify_slack` posts to Slack. You specify the setting in command line option or toml setting file.
-If both settings are specified, command line option will always take precedence.
+``` sh
+./bin/notify_slack -upload README.md
+```
+
+You post the file as a snippet. A token is required to use the Slack Web API.
+
 
 ### CLI options
 
@@ -32,6 +39,10 @@ If both settings are specified, command line option will always take precedence.
       interval (default 1s)
 -slack-url string
       slack url
+-token string
+      token
+-upload string
+      upload file
 -username string
       specify username
 ```
@@ -49,6 +60,7 @@ The contents of the toml file are as follows.
 ```toml:notify_slack.toml
 [slack]
 url = "https://hooks.slack.com/services/**"
+token = "xxxxx"
 channel = "#general"
 username = "tester"
 icon_emoji = ":rocket:"
