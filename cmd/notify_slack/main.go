@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -17,6 +18,7 @@ import (
 
 func main() {
 	var (
+		filename string
 		tomlFile string
 		duration time.Duration
 	)
@@ -25,9 +27,11 @@ func main() {
 
 	flag.StringVar(&conf.Channel, "channel", "", "specify channel")
 	flag.StringVar(&conf.SlackURL, "slack-url", "", "slack url")
+	flag.StringVar(&conf.Token, "token", "", "token")
 	flag.StringVar(&conf.Username, "username", "", "specify username")
 	flag.StringVar(&conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
+	flag.StringVar(&filename, "upload", "", "upload file")
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
 	flag.StringVar(&tomlFile, "c", "", "config file name")
 
@@ -43,9 +47,33 @@ func main() {
 		log.Fatal("provide Slack URL")
 	}
 
-	sClient, err := slack.NewClient(conf.SlackURL, "", nil)
+	sClient, err := slack.NewClient(conf.SlackURL, conf.Token, nil)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+
+	if filename != "" {
+		_, err = os.Stat(filename)
+		if err != nil {
+			log.Fatalf("%s does not exist", filename)
+		}
+
+		content, err := ioutil.ReadFile(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		param := &slack.PostFileParam{
+			Channel:  conf.Channel,
+			Filename: filename,
+			Content:  string(content),
+		}
+		err = sClient.PostFile(context.Background(), param)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return
 	}
 
 	copyStdin := io.TeeReader(os.Stdin, os.Stdout)

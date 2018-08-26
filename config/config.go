@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	SlackURL  string
+	Token     string
 	Channel   string
 	Username  string
 	IconEmoji string
@@ -18,6 +19,7 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		SlackURL:  "",
+		Token:     "",
 		Channel:   "",
 		Username:  "",
 		IconEmoji: "",
@@ -41,6 +43,12 @@ func (c *Config) LoadTOML(filename string) error {
 		slackURL, ok := slackConfig.Get("url").(string)
 		if ok {
 			c.SlackURL = slackURL
+		}
+	}
+	if c.Token == "" {
+		token, ok := slackConfig.Get("token").(string)
+		if ok {
+			c.Token = token
 		}
 	}
 	if c.Channel == "" {

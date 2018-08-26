@@ -113,6 +113,14 @@ type apiFilesUploadRes struct {
 }
 
 func (c *Client) PostFile(ctx context.Context, param *PostFileParam) error {
+	if len(c.Token) == 0 {
+		return fmt.Errorf("provide Slack token")
+	}
+
+	if param.Content == "" {
+		return fmt.Errorf("the content of the file is empty")
+	}
+
 	v := url.Values{}
 	v.Set("token", c.Token)
 	v.Set("content", param.Content)
