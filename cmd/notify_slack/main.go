@@ -53,6 +53,10 @@ func main() {
 	}
 
 	if filename != "" {
+		if conf.Token == "" {
+			log.Fatal("provide Slack token")
+		}
+
 		_, err = os.Stat(filename)
 		if err != nil {
 			log.Fatalf("%s does not exist", filename)
