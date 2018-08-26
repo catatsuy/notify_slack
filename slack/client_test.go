@@ -1,4 +1,4 @@
-package slack
+package slack_test
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	. "github.com/catatsuy/notify_slack/slack"
 )
 
 func TestNewClient_badURL(t *testing.T) {
