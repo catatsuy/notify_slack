@@ -21,7 +21,6 @@ var (
 
 type Client struct {
 	URL        *url.URL
-	Token      string
 	HTTPClient *http.Client
 
 	Logger *log.Logger
@@ -40,7 +39,7 @@ type PostFileParam struct {
 	Filename string
 }
 
-func NewClient(urlStr string, token string, logger *log.Logger) (*Client, error) {
+func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	if len(urlStr) == 0 {
 		return nil, fmt.Errorf("client: missing url")
 	}
@@ -57,7 +56,6 @@ func NewClient(urlStr string, token string, logger *log.Logger) (*Client, error)
 
 	client := &Client{
 		URL:        parsedURL,
-		Token:      token,
 		HTTPClient: http.DefaultClient,
 		Logger:     logger,
 	}
@@ -112,8 +110,8 @@ type apiFilesUploadRes struct {
 	OK bool `json:"ok"`
 }
 
-func (c *Client) PostFile(ctx context.Context, param *PostFileParam) error {
-	if len(c.Token) == 0 {
+func (c *Client) PostFile(ctx context.Context, token string, param *PostFileParam) error {
+	if len(token) == 0 {
 		return fmt.Errorf("provide Slack token")
 	}
 
@@ -122,7 +120,7 @@ func (c *Client) PostFile(ctx context.Context, param *PostFileParam) error {
 	}
 
 	v := url.Values{}
-	v.Set("token", c.Token)
+	v.Set("token", token)
 	v.Set("content", param.Content)
 	v.Set("filename", param.Filename)
 	v.Set("channels", param.Channel)

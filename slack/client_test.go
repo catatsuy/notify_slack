@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewClient_badURL(t *testing.T) {
-	_, err := NewClient("", "", nil)
+	_, err := NewClient("", nil)
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -25,7 +25,7 @@ func TestNewClient_badURL(t *testing.T) {
 }
 
 func TestNewClient_parsesURL(t *testing.T) {
-	client, err := NewClient("https://example.com/foo/bar", "", nil)
+	client, err := NewClient("https://example.com/foo/bar", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestPostText_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_ok.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, "", nil)
+	c, err := NewClient(testAPIServer.URL, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestPostText_Fail(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_fail.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, "", nil)
+	c, err := NewClient(testAPIServer.URL, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,12 +170,12 @@ func TestPostFile_Success(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", slackToken, nil)
+	c, err := NewClient("https://example.com", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), param)
+	err = c.PostFile(context.Background(), slackToken, param)
 
 	if err != nil {
 		t.Fatal(err)
@@ -201,12 +201,12 @@ func TestPostFile_FailNotOk(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", slackToken, nil)
+	c, err := NewClient("https://example.com", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), param)
+	err = c.PostFile(context.Background(), slackToken, param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -238,12 +238,12 @@ func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", slackToken, nil)
+	c, err := NewClient("https://example.com", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), param)
+	err = c.PostFile(context.Background(), slackToken, param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -274,12 +274,12 @@ func TestPostFile_FailNotJSON(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", slackToken, nil)
+	c, err := NewClient("https://example.com", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), param)
+	err = c.PostFile(context.Background(), slackToken, param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")

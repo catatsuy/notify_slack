@@ -47,7 +47,7 @@ func main() {
 		log.Fatal("provide Slack URL")
 	}
 
-	sClient, err := slack.NewClient(conf.SlackURL, conf.Token, nil)
+	sClient, err := slack.NewClient(conf.SlackURL, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func main() {
 			Filename: filename,
 			Content:  string(content),
 		}
-		err = sClient.PostFile(context.Background(), param)
+		err = sClient.PostFile(context.Background(), conf.Token, param)
 		if err != nil {
 			log.Fatal(err)
 		}
