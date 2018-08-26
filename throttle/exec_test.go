@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"runtime"
 	"testing"
 	"time"
 )
 
 func TestRun(t *testing.T) {
-	runtime.GOMAXPROCS(1)
-
 	pr, pw := io.Pipe()
 
 	output := new(bytes.Buffer)
@@ -26,6 +23,8 @@ func TestRun(t *testing.T) {
 	flushCallback := func(_ context.Context, s string) error {
 		defer func() {
 			fc <- struct{}{}
+			// to random fail from Go 1.10 or later
+			time.Sleep(0)
 		}()
 
 		count++
