@@ -3,9 +3,9 @@ package cli
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,16 +14,21 @@ import (
 	"github.com/catatsuy/notify_slack/config"
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
+	"github.com/pkg/errors"
 )
 
 const (
 	ExitCodeOK             = 0
 	ExitCodeParseFlagError = 1
+	ExitCodeFail           = 1
 )
 
 type CLI struct {
 	outStream, errStream io.Writer
 	inputStream          io.Reader
+
+	sClient *slack.Client
+	conf    *config.Config
 }
 
 func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
@@ -36,16 +41,16 @@ func (c *CLI) Run(args []string) int {
 		duration time.Duration
 	)
 
-	conf := config.NewConfig()
+	c.conf = config.NewConfig()
 
 	flags := flag.NewFlagSet("notify_slack", flag.ContinueOnError)
 	flags.SetOutput(c.errStream)
 
-	flags.StringVar(&conf.Channel, "channel", "", "specify channel")
-	flags.StringVar(&conf.SlackURL, "slack-url", "", "slack url")
-	flags.StringVar(&conf.Token, "token", "", "token")
-	flags.StringVar(&conf.Username, "username", "", "specify username")
-	flags.StringVar(&conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
+	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel")
+	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url")
+	flags.StringVar(&c.conf.Token, "token", "", "token")
+	flags.StringVar(&c.conf.Username, "username", "", "specify username")
+	flags.StringVar(&c.conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
 	flags.DurationVar(&duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
@@ -64,41 +69,30 @@ func (c *CLI) Run(args []string) int {
 	tomlFile = config.LoadTOMLFilename(tomlFile)
 
 	if tomlFile != "" {
-		conf.LoadTOML(tomlFile)
+		c.conf.LoadTOML(tomlFile)
 	}
 
-	if conf.SlackURL == "" {
-		log.Fatal("provide Slack URL")
+	if c.conf.SlackURL == "" {
+		fmt.Fprintln(c.errStream, "provide Slack URL")
+		return ExitCodeFail
 	}
 
-	sClient, err := slack.NewClient(conf.SlackURL, nil)
+	c.sClient, err = slack.NewClient(c.conf.SlackURL, nil)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(c.errStream, err)
+		return ExitCodeFail
 	}
 
 	if filename != "" {
-		if conf.Token == "" {
-			log.Fatal("provide Slack token")
+		if c.conf.Token == "" {
+			fmt.Fprintln(c.errStream, "provide Slack token")
+			return ExitCodeFail
 		}
 
-		_, err = os.Stat(filename)
+		err := c.uploadSnippet(context.Background(), filename)
 		if err != nil {
-			log.Fatalf("%s does not exist", filename)
-		}
-
-		content, err := ioutil.ReadFile(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		param := &slack.PostFileParam{
-			Channel:  conf.Channel,
-			Filename: filename,
-			Content:  string(content),
-		}
-		err = sClient.PostFile(context.Background(), conf.Token, param)
-		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(c.errStream, err)
+			return ExitCodeFail
 		}
 
 		return ExitCodeOK
@@ -112,14 +106,14 @@ func (c *CLI) Run(args []string) int {
 	signal.Notify(exitC, syscall.SIGTERM, syscall.SIGINT)
 
 	param := &slack.PostTextParam{
-		Channel:   conf.Channel,
-		Username:  conf.Username,
-		IconEmoji: conf.IconEmoji,
+		Channel:   c.conf.Channel,
+		Username:  c.conf.Username,
+		IconEmoji: c.conf.IconEmoji,
 	}
 
 	flushCallback := func(_ context.Context, output string) error {
 		param.Text = output
-		return sClient.PostText(context.Background(), param)
+		return c.sClient.PostText(context.Background(), param)
 	}
 
 	done := make(chan struct{}, 0)
@@ -146,4 +140,28 @@ func (c *CLI) Run(args []string) int {
 	<-done
 
 	return ExitCodeOK
+}
+
+func (c *CLI) uploadSnippet(ctx context.Context, filename string) error {
+	_, err := os.Stat(filename)
+	if err != nil {
+		return errors.Wrapf(err, "%s does not exist", filename)
+	}
+
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	param := &slack.PostFileParam{
+		Channel:  c.conf.Channel,
+		Filename: filename,
+		Content:  string(content),
+	}
+	err = c.sClient.PostFile(ctx, c.conf.Token, param)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
