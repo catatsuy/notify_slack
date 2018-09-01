@@ -20,7 +20,7 @@ If both settings are specified, command line option will always take precedence.
 `./bin/output` is used for testing. While buffering, to post to slack.
 
 ``` sh
-./bin/notify_slack -upload README.md
+./bin/notify_slack README.md
 ```
 
 You post the file as a snippet. A token is required to use the Slack Web API.
@@ -41,8 +41,6 @@ You post the file as a snippet. A token is required to use the Slack Web API.
       slack url
 -token string
       token
--upload string
-      upload file
 -username string
       specify username
 ```

@@ -18,7 +18,6 @@ import (
 
 func main() {
 	var (
-		filename string
 		tomlFile string
 		duration time.Duration
 	)
@@ -31,11 +30,16 @@ func main() {
 	flag.StringVar(&conf.Username, "username", "", "specify username")
 	flag.StringVar(&conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
-	flag.StringVar(&filename, "upload", "", "upload file")
 	flag.DurationVar(&duration, "interval", time.Second, "interval")
 	flag.StringVar(&tomlFile, "c", "", "config file name")
 
 	flag.Parse()
+
+	args := flag.Args()
+	filename := ""
+	if len(args) == 1 {
+		filename = args[0]
+	}
 
 	tomlFile = config.LoadTOMLFilename(tomlFile)
 
