@@ -62,7 +62,7 @@ By default check the following files.
 2. `$HOME/etc/notify_slack.toml`
 3. `/etc/notify_slack.toml`
 
-The contents of the toml file are as follows.
+The contents of the toml file are as follows. `url` is a required parameter. `token` is necessary if you want to post to snippet.
 
 ```toml:notify_slack.toml
 [slack]
