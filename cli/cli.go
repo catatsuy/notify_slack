@@ -38,7 +38,6 @@ func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
 func (c *CLI) Run(args []string) int {
 	var (
 		tomlFile string
-		duration time.Duration
 	)
 
 	c.conf = config.NewConfig()
@@ -52,7 +51,7 @@ func (c *CLI) Run(args []string) int {
 	flags.StringVar(&c.conf.Username, "username", "", "specify username")
 	flags.StringVar(&c.conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 
-	flags.DurationVar(&duration, "interval", time.Second, "interval")
+	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
 
 	err := flags.Parse(args[1:])
@@ -69,7 +68,11 @@ func (c *CLI) Run(args []string) int {
 	tomlFile = config.LoadTOMLFilename(tomlFile)
 
 	if tomlFile != "" {
-		c.conf.LoadTOML(tomlFile)
+		err := c.conf.LoadTOML(tomlFile)
+		if err != nil {
+			fmt.Fprintln(c.errStream, err)
+			return ExitCodeFail
+		}
 	}
 
 	if c.conf.SlackURL == "" {
@@ -126,7 +129,7 @@ func (c *CLI) Run(args []string) int {
 		return flushCallback(ctx, output)
 	}
 
-	interval := time.Tick(duration)
+	interval := time.Tick(c.conf.Duration)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	ex.Start(ctx, interval, flushCallback, doneCallback)
