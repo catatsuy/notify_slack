@@ -3,9 +3,11 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"time"
 
 	homedir "github.com/mitchellh/go-homedir"
 	toml "github.com/pelletier/go-toml"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -14,6 +16,7 @@ type Config struct {
 	Channel   string
 	Username  string
 	IconEmoji string
+	Duration  time.Duration
 }
 
 func NewConfig() *Config {
@@ -68,6 +71,15 @@ func (c *Config) LoadTOML(filename string) error {
 		if ok {
 			c.IconEmoji = iconEmoji
 		}
+	}
+
+	durationStr, ok := slackConfig.Get("interval").(string)
+	if ok {
+		duration, err := time.ParseDuration(durationStr)
+		if err != nil {
+			return errors.Wrapf(err, "incorrect value to inteval option: %s", durationStr)
+		}
+		c.Duration = duration
 	}
 
 	return nil
