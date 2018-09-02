@@ -52,6 +52,8 @@ You post the file as a snippet. A token is required to use the Slack Web API.
       token
 -username string
       specify username
+-version
+      Print version information and quit
 ```
 
 ### toml configuration file

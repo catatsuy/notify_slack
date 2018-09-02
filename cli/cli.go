@@ -18,6 +18,8 @@ import (
 )
 
 const (
+	Version = "v0.2.1"
+
 	ExitCodeOK             = 0
 	ExitCodeParseFlagError = 1
 	ExitCodeFail           = 1
@@ -37,6 +39,7 @@ func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
 
 func (c *CLI) Run(args []string) int {
 	var (
+		version  bool
 		tomlFile string
 	)
 
@@ -50,13 +53,19 @@ func (c *CLI) Run(args []string) int {
 	flags.StringVar(&c.conf.Token, "token", "", "token")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username")
 	flags.StringVar(&c.conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
-
 	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
+
+	flags.BoolVar(&version, "version", false, "Print version information and quit")
 
 	err := flags.Parse(args[1:])
 	if err != nil {
 		return ExitCodeParseFlagError
+	}
+
+	if version {
+		fmt.Fprintf(c.errStream, "notify_slack version %s\n", Version)
+		return ExitCodeOK
 	}
 
 	argv := flags.Args()
