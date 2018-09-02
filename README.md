@@ -8,6 +8,15 @@ Notify slack from the command line. It receives standard input and notifies Slac
 go get github.com/catatsuy/notify_slack/cmd/notify_slack
 ```
 
+Or you download from [Releases](https://github.com/catatsuy/notify_slack/releases).
+
+If you want to develop, please use the `make`.
+
+```
+make bundle
+make
+```
+
 ## usage
 
 `./bin/notify_slack` posts to Slack. You specify the setting in command line option or toml setting file.
