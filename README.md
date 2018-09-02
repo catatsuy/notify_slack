@@ -32,7 +32,7 @@ If both settings are specified, command line option will always take precedence.
 ./bin/notify_slack README.md
 ```
 
-You post the file as a snippet. A token is required to use the Slack Web API.
+You post the file as a snippet. `token` and `channel` is required to use the Slack Web API.
 
 
 ### CLI options
@@ -64,7 +64,7 @@ By default check the following files.
 2. `$HOME/etc/notify_slack.toml`
 3. `/etc/notify_slack.toml`
 
-The contents of the toml file are as follows. `url` is a required parameter. `token` is necessary if you want to post to snippet.
+The contents of the toml file are as follows.
 
 ```toml:notify_slack.toml
 [slack]
@@ -73,4 +73,12 @@ token = "xxxxx"
 channel = "#general"
 username = "tester"
 icon_emoji = ":rocket:"
+interval = "1s"
 ```
+
+Note:
+
+  * `url` is a required parameter.
+    * You can specify `channel`, `username`, `icon_emoji` and `interval`.
+  * `token` and `channel` is necessary if you want to post to snippet.
+    * `username` and `icon_emoji` are ignored in this case.
