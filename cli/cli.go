@@ -39,8 +39,9 @@ func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
 
 func (c *CLI) Run(args []string) int {
 	var (
-		version  bool
-		tomlFile string
+		version        bool
+		tomlFile       string
+		uploadFilename string
 	)
 
 	c.conf = config.NewConfig()
@@ -50,11 +51,12 @@ func (c *CLI) Run(args []string) int {
 
 	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url")
-	flags.StringVar(&c.conf.Token, "token", "", "token")
+	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading to snippet)")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username")
 	flags.StringVar(&c.conf.IconEmoji, "icon-emoji", "", "specify icon emoji")
 	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
+	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading to snippet)")
 
 	flags.BoolVar(&version, "version", false, "Print version information and quit")
 
@@ -97,11 +99,11 @@ func (c *CLI) Run(args []string) int {
 
 	if filename != "" {
 		if c.conf.Token == "" {
-			fmt.Fprintln(c.errStream, "must specify Slack token for uploading snippet")
+			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
 			return ExitCodeFail
 		}
 
-		err := c.uploadSnippet(context.Background(), filename)
+		err := c.uploadSnippet(context.Background(), filename, uploadFilename)
 		if err != nil {
 			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail
@@ -154,9 +156,9 @@ func (c *CLI) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *CLI) uploadSnippet(ctx context.Context, filename string) error {
+func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename string) error {
 	if c.conf.Channel == "" {
-		return fmt.Errorf("must specify channel for uploading snippet")
+		return fmt.Errorf("must specify channel for uploading to snippet")
 	}
 
 	_, err := os.Stat(filename)
@@ -169,9 +171,13 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename string) error {
 		return err
 	}
 
+	if uploadFilename == "" {
+		uploadFilename = filename
+	}
+
 	param := &slack.PostFileParam{
 		Channel:  c.conf.Channel,
-		Filename: filename,
+		Filename: uploadFilename,
 		Content:  string(content),
 	}
 	err = c.sClient.PostFile(ctx, c.conf.Token, param)
