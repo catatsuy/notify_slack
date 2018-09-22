@@ -85,7 +85,7 @@ func (c *CLI) Run(args []string) int {
 	}
 
 	if c.conf.SlackURL == "" {
-		fmt.Fprintln(c.errStream, "provide Slack URL")
+		fmt.Fprintln(c.errStream, "must specify Slack URL")
 		return ExitCodeFail
 	}
 
@@ -97,7 +97,7 @@ func (c *CLI) Run(args []string) int {
 
 	if filename != "" {
 		if c.conf.Token == "" {
-			fmt.Fprintln(c.errStream, "provide Slack token")
+			fmt.Fprintln(c.errStream, "must specify Slack token for uploading snippet")
 			return ExitCodeFail
 		}
 
@@ -155,6 +155,10 @@ func (c *CLI) Run(args []string) int {
 }
 
 func (c *CLI) uploadSnippet(ctx context.Context, filename string) error {
+	if c.conf.Channel == "" {
+		return fmt.Errorf("must specify channel for uploading snippet")
+	}
+
 	_, err := os.Stat(filename)
 	if err != nil {
 		return errors.Wrapf(err, "%s does not exist", filename)
