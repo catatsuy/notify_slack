@@ -184,6 +184,66 @@ func TestPostFile_Success(t *testing.T) {
 	}
 }
 
+func TestPostFile_Success_provideFiletype(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	param := &PostFileParam{
+		Channel:  "test-channel",
+		Content:  "testtesttest",
+		Filename: "test.txt",
+		Filetype: "diff",
+	}
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get("Content-Type")
+		expectedType := "application/x-www-form-urlencoded"
+		if contentType != expectedType {
+			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		bodyBytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer r.Body.Close()
+
+		actualV, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expectedV := url.Values{}
+		expectedV.Set("token", slackToken)
+		expectedV.Set("content", param.Content)
+		expectedV.Set("filename", param.Filename)
+		expectedV.Set("filetype", param.Filetype)
+		expectedV.Set("channels", param.Channel)
+
+		if !reflect.DeepEqual(actualV, expectedV) {
+			t.Fatalf("expected %q to equal %q", actualV, expectedV)
+		}
+
+		http.ServeFile(w, r, "testdata/post_files_upload_ok.json")
+	})
+
+	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+
+	c, err := NewClient("https://example.com", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.PostFile(context.Background(), slackToken, param)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPostFile_FailNotOk(t *testing.T) {
 	muxAPI := http.NewServeMux()
 	testAPIServer := httptest.NewServer(muxAPI)

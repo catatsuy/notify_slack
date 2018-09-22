@@ -42,6 +42,7 @@ func (c *CLI) Run(args []string) int {
 		version        bool
 		tomlFile       string
 		uploadFilename string
+		filetype       string
 	)
 
 	c.conf = config.NewConfig()
@@ -57,6 +58,7 @@ func (c *CLI) Run(args []string) int {
 	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
 	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading to snippet)")
+	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading to snippet)")
 
 	flags.BoolVar(&version, "version", false, "Print version information and quit")
 
@@ -103,7 +105,7 @@ func (c *CLI) Run(args []string) int {
 			return ExitCodeFail
 		}
 
-		err := c.uploadSnippet(context.Background(), filename, uploadFilename)
+		err := c.uploadSnippet(context.Background(), filename, uploadFilename, filetype)
 		if err != nil {
 			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail
@@ -156,7 +158,7 @@ func (c *CLI) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename string) error {
+func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filetype string) error {
 	if c.conf.Channel == "" {
 		return fmt.Errorf("must specify channel for uploading to snippet")
 	}
@@ -179,6 +181,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename string
 		Channel:  c.conf.Channel,
 		Filename: uploadFilename,
 		Content:  string(content),
+		Filetype: filetype,
 	}
 	err = c.sClient.PostFile(ctx, c.conf.Token, param)
 	if err != nil {
