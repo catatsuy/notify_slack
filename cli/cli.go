@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	Version = "v0.2.1"
+	Version = "v0.2.2"
 
 	ExitCodeOK             = 0
 	ExitCodeParseFlagError = 1
