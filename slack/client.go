@@ -20,6 +20,8 @@ var (
 )
 
 type Client struct {
+	Slack
+
 	URL        *url.URL
 	HTTPClient *http.Client
 
@@ -38,6 +40,11 @@ type PostFileParam struct {
 	Content  string
 	Filename string
 	Filetype string
+}
+
+type Slack interface {
+	PostText(ctx context.Context, param *PostTextParam) error
+	PostFile(ctx context.Context, token string, param *PostFileParam) error
 }
 
 func NewClient(urlStr string, logger *log.Logger) (*Client, error) {

@@ -29,7 +29,7 @@ type CLI struct {
 	outStream, errStream io.Writer
 	inputStream          io.Reader
 
-	sClient *slack.Client
+	sClient slack.Slack
 	conf    *config.Config
 }
 
