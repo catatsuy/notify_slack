@@ -11,22 +11,18 @@ import (
 )
 
 type Config struct {
-	SlackURL  string
-	Token     string
-	Channel   string
-	Username  string
-	IconEmoji string
-	Duration  time.Duration
+	SlackURL       string
+	Token          string
+	PrimaryChannel string
+	Channel        string
+	SnippetChannel string
+	Username       string
+	IconEmoji      string
+	Duration       time.Duration
 }
 
 func NewConfig() *Config {
-	return &Config{
-		SlackURL:  "",
-		Token:     "",
-		Channel:   "",
-		Username:  "",
-		IconEmoji: "",
-	}
+	return &Config{}
 }
 
 func (c *Config) LoadTOML(filename string) error {
@@ -58,6 +54,12 @@ func (c *Config) LoadTOML(filename string) error {
 		channel, ok := slackConfig.Get("channel").(string)
 		if ok {
 			c.Channel = channel
+		}
+	}
+	if c.SnippetChannel == "" {
+		snippetChannel, ok := slackConfig.Get("snippet_channel").(string)
+		if ok {
+			c.SnippetChannel = snippetChannel
 		}
 	}
 	if c.Username == "" {
