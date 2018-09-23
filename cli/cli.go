@@ -76,6 +76,18 @@ func (c *CLI) Run(args []string) int {
 	filename := ""
 	if len(argv) == 1 {
 		filename = argv[0]
+	} else if len(argv) > 1 {
+		filename = argv[0]
+		err = flags.Parse(argv[1:])
+		if err != nil {
+			return ExitCodeParseFlagError
+		}
+
+		argv = flags.Args()
+		if len(argv) > 0 {
+			fmt.Fprintln(c.errStream, "You cannot pass multiple files")
+			return ExitCodeParseFlagError
+		}
 	}
 
 	tomlFile = config.LoadTOMLFilename(tomlFile)
