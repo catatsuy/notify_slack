@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -68,7 +69,7 @@ func (c *CLI) Run(args []string) int {
 	}
 
 	if version {
-		fmt.Fprintf(c.errStream, "notify_slack version %s\n", Version)
+		fmt.Fprintf(c.errStream, "notify_slack version %s; %s\n", Version, runtime.Version())
 		return ExitCodeOK
 	}
 
