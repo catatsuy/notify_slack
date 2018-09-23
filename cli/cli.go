@@ -50,7 +50,7 @@ func (c *CLI) Run(args []string) int {
 	flags := flag.NewFlagSet("notify_slack", flag.ContinueOnError)
 	flags.SetOutput(c.errStream)
 
-	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel")
+	flags.StringVar(&c.conf.PrimaryChannel, "channel", "", "specify channel")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url")
 	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading to snippet)")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username")
@@ -121,8 +121,13 @@ func (c *CLI) Run(args []string) int {
 	exitC := make(chan os.Signal, 0)
 	signal.Notify(exitC, syscall.SIGTERM, syscall.SIGINT)
 
+	channel := c.conf.PrimaryChannel
+	if channel == "" {
+		channel = c.conf.Channel
+	}
+
 	param := &slack.PostTextParam{
-		Channel:   c.conf.Channel,
+		Channel:   channel,
 		Username:  c.conf.Username,
 		IconEmoji: c.conf.IconEmoji,
 	}
@@ -159,7 +164,15 @@ func (c *CLI) Run(args []string) int {
 }
 
 func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filetype string) error {
-	if c.conf.Channel == "" {
+	channel := c.conf.PrimaryChannel
+	if channel == "" {
+		channel = c.conf.SnippetChannel
+	}
+	if channel == "" {
+		channel = c.conf.Channel
+	}
+
+	if channel == "" {
 		return fmt.Errorf("must specify channel for uploading to snippet")
 	}
 
@@ -178,7 +191,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 
 	param := &slack.PostFileParam{
-		Channel:  c.conf.Channel,
+		Channel:  channel,
 		Filename: uploadFilename,
 		Content:  string(content),
 		Filetype: filetype,

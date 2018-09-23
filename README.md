@@ -97,3 +97,7 @@ Note:
     * You can specify `channel`, `username`, `icon_emoji` and `interval`.
   * `token` and `channel` is necessary if you want to post to snippet.
     * `username` and `icon_emoji` are ignored in this case.
+
+Tips:
+
+  * If you want to default to another channel only for snippet, you can use `snippet_channel`.
