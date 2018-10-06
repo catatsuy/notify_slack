@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -21,6 +23,23 @@ func (c *fakeSlackClient) PostFile(ctx context.Context, token string, param *sla
 
 func (c *fakeSlackClient) PostText(ctx context.Context, param *slack.PostTextParam) error {
 	return nil
+}
+
+func TestRun_versionFlg(t *testing.T) {
+	outStream, errStream, inputStream := new(bytes.Buffer), new(bytes.Buffer), new(bytes.Buffer)
+	cl := NewCLI(outStream, errStream, inputStream)
+
+	args := strings.Split("notify_slack -version", " ")
+	status := cl.Run(args)
+
+	if status != ExitCodeOK {
+		t.Errorf("ExitStatus=%d, want %d", status, ExitCodeOK)
+	}
+
+	expected := fmt.Sprintf("notify_slack version %s", Version)
+	if !strings.Contains(errStream.String(), expected) {
+		t.Errorf("Output=%q, want %q", errStream.String(), expected)
+	}
 }
 
 func TestUploadSnippet(t *testing.T) {
