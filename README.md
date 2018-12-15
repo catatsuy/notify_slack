@@ -10,10 +10,9 @@ go get github.com/catatsuy/notify_slack/cmd/notify_slack
 
 Or you download from [Releases](https://github.com/catatsuy/notify_slack/releases).
 
-If you want to develop, please use the `make`.
+If you want to develop, please use the `make`. This software requires Go 1.11 or higher.
 
 ```
-make bundle
 make
 ```
 

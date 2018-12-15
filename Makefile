@@ -1,6 +1,6 @@
-GLIDE = glide
+export GO111MODULE=on
 
-.PHONY: all test vet bundle release
+.PHONY: all test vet release
 
 all: bin/notify_slack bin/output
 
@@ -16,9 +16,6 @@ release:
 	GOOS=darwin go build -o notify_slack cmd/notify_slack/main.go
 	tar cvzf release/notify_slack-darwin-amd64.tar.gz notify_slack
 	rm notify_slack
-
-bundle:
-	$(GLIDE) install
 
 test:
 	go test ./...
