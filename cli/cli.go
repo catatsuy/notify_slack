@@ -15,7 +15,7 @@ import (
 	"github.com/catatsuy/notify_slack/config"
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 const (
@@ -191,7 +191,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 
 	_, err := os.Stat(filename)
 	if err != nil {
-		return errors.Wrapf(err, "%s does not exist", filename)
+		return xerrors.Errorf("%s does not exist: %w", filename, err)
 	}
 
 	content, err := ioutil.ReadFile(filename)
