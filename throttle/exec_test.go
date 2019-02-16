@@ -23,8 +23,8 @@ func TestRun(t *testing.T) {
 	flushCallback := func(_ context.Context, s string) error {
 		defer func() {
 			fc <- struct{}{}
-			// to random fail from Go 1.10 or later
-			time.Sleep(0)
+			// to random fail from Go 1.12 or later
+			time.Sleep(time.Millisecond)
 		}()
 
 		count++
