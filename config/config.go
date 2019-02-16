@@ -7,7 +7,7 @@ import (
 
 	homedir "github.com/mitchellh/go-homedir"
 	toml "github.com/pelletier/go-toml"
-	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 type Config struct {
@@ -79,7 +79,7 @@ func (c *Config) LoadTOML(filename string) error {
 	if ok {
 		duration, err := time.ParseDuration(durationStr)
 		if err != nil {
-			return errors.Wrapf(err, "incorrect value to inteval option: %s", durationStr)
+			return xerrors.Errorf("incorrect value to inteval option: %s: %w", durationStr, err)
 		}
 		c.Duration = duration
 	}
