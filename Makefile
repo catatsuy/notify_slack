@@ -4,7 +4,10 @@ export GO111MODULE=on
 
 all: bin/notify_slack bin/output
 
-bin/notify_slack: cmd/notify_slack/main.go slack/*.go throttle/*.go config/*.go cli/*.go
+go.mod go.sum:
+	go mod tidy
+
+bin/notify_slack: cmd/notify_slack/main.go slack/*.go throttle/*.go config/*.go cli/*.go go.mod go.sum
 	go build -o bin/notify_slack cmd/notify_slack/main.go
 
 bin/output: cmd/output/main.go
