@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	homedir "github.com/mitchellh/go-homedir"
 	toml "github.com/pelletier/go-toml"
 	"golang.org/x/xerrors"
 )
@@ -92,7 +91,7 @@ func LoadTOMLFilename(filename string) string {
 		return filename
 	}
 
-	homeDir, err := homedir.Dir()
+	homeDir, err := os.UserHomeDir()
 	if err == nil {
 		tomlFile := homeDir + "/etc/notify_slack.toml"
 		if fileExists(tomlFile) {
