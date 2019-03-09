@@ -27,6 +27,12 @@ jobs:
       - run: make bin/notify_slack
       - run: make release
 
+      - persist_to_workspace:
+          root: release/
+          paths:
+            - notify_slack-linux-amd64.tar.gz
+            - notify_slack-darwin-amd64.tar.gz
+
   publish-github-release:
     docker:
       - image: cibuilds/github:0.10
