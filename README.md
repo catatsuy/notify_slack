@@ -7,7 +7,7 @@ Please watch this video. https://www.youtube.com/watch?v=wmKSr9Aoz-Y
 ## Installation
 
 ```
-go get github.com/catatsuy/notify_slack/cmd/notify_slack
+GO111MODULE=on go get github.com/catatsuy/notify_slack/cmd/notify_slack
 ```
 
 Or you download from [Releases](https://github.com/catatsuy/notify_slack/releases).
