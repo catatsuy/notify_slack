@@ -24,7 +24,7 @@ func TestRun(t *testing.T) {
 		defer func() {
 			fc <- struct{}{}
 			// to random fail from Go 1.12 or later
-			time.Sleep(time.Millisecond)
+			time.Sleep(2 * time.Millisecond)
 		}()
 
 		count++
