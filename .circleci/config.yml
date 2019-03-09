@@ -36,7 +36,6 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            make release
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./release/
 
 # cf: https://circleci.com/blog/publishing-to-github-releases-via-circleci/
