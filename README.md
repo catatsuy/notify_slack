@@ -102,3 +102,14 @@ Note:
 Tips:
 
   * If you want to default to another channel only for snippet, you can use `snippet_channel`.
+
+## Release
+
+Version of `cli/cli.go` will be updated.
+
+When you execute the following command and give a tag, it will be released via CircleCI.
+
+``` sh
+git tag v0.3.0
+git push origin v0.3.0
+```
