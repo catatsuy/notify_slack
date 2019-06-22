@@ -43,7 +43,7 @@ You make sure to give the appropriate extension.
 If you want to upload to snippet via standard input, you can specify `filename`.
 
 ``` sh
-git diff | ./bin/notify_slack -filename git.diff /dev/stdin
+git diff | ./bin/notify_slack -snippet -filename git.diff
 ```
 
 
@@ -64,6 +64,8 @@ git diff | ./bin/notify_slack -filename git.diff /dev/stdin
       interval (default 1s)
 -slack-url string
       slack url
+-snippet
+      switch to snippet uploading mode
 -token string
       token (for uploading to snippet)
 -username string
@@ -99,6 +101,8 @@ Note:
     * You can specify `channel`, `username`, `icon_emoji` and `interval`.
   * `token` and `channel` is necessary if you want to post to snippet.
     * `username` and `icon_emoji` are ignored in this case.
+  * token can be created on https://api.slack.com/custom-integrations/legacy-tokens
+  * webhook url can be created on https://slack.com/services/new/incoming-webhook
 
 Tips:
 

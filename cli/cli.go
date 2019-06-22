@@ -44,6 +44,7 @@ func (c *CLI) Run(args []string) int {
 		tomlFile       string
 		uploadFilename string
 		filetype       string
+		snippetMode    bool
 	)
 
 	c.conf = config.NewConfig()
@@ -60,6 +61,8 @@ func (c *CLI) Run(args []string) int {
 	flags.StringVar(&tomlFile, "c", "", "config file name")
 	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading to snippet)")
 	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading to snippet)")
+
+	flags.BoolVar(&snippetMode, "snippet", false, "switch to snippet uploading mode")
 
 	flags.BoolVar(&version, "version", false, "Print version information and quit")
 
@@ -112,7 +115,7 @@ func (c *CLI) Run(args []string) int {
 		return ExitCodeFail
 	}
 
-	if filename != "" {
+	if filename != "" || snippetMode {
 		if c.conf.Token == "" {
 			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
 			return ExitCodeFail
@@ -187,6 +190,10 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 
 	if channel == "" {
 		return fmt.Errorf("must specify channel for uploading to snippet")
+	}
+
+	if filename == "" {
+		filename = "/dev/stdin"
 	}
 
 	_, err := os.Stat(filename)
