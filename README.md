@@ -77,8 +77,9 @@ git diff | ./bin/notify_slack -filename git.diff /dev/stdin
 By default check the following files.
 
 1. a file specified with `-c`
-2. `$HOME/etc/notify_slack.toml`
-3. `/etc/notify_slack.toml`
+1. `$HOME/.notify_slack.toml`
+1. `$HOME/etc/notify_slack.toml`
+1. `/etc/notify_slack.toml`
 
 The contents of the toml file are as follows.
 
