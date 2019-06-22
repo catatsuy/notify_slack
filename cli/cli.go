@@ -104,6 +104,26 @@ func (c *CLI) Run(args []string) int {
 		}
 	}
 
+	// environment variables
+	if c.conf.SlackURL == "" {
+		c.conf.SlackURL = os.Getenv("NOTIFY_SLACK_WEBHOOK_URL")
+	}
+	if c.conf.Token == "" {
+		c.conf.Token = os.Getenv("NOTIFY_SLACK_TOKEN")
+	}
+	if c.conf.Channel == "" {
+		c.conf.Channel = os.Getenv("NOTIFY_SLACK_CHANNEL")
+	}
+	if c.conf.SnippetChannel == "" {
+		c.conf.SnippetChannel = os.Getenv("NOTIFY_SLACK_SNIPPET_CHANNEL")
+	}
+	if c.conf.Username == "" {
+		c.conf.Username = os.Getenv("NOTIFY_SLACK_USERNAME")
+	}
+	if c.conf.IconEmoji == "" {
+		c.conf.IconEmoji = os.Getenv("NOTIFY_SLACK_ICON_EMOJI")
+	}
+
 	if c.conf.SlackURL == "" {
 		fmt.Fprintln(c.errStream, "must specify Slack URL")
 		return ExitCodeFail
