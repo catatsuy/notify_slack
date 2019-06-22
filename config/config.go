@@ -93,7 +93,12 @@ func LoadTOMLFilename(filename string) string {
 
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
-		tomlFile := homeDir + "/etc/notify_slack.toml"
+		tomlFile := homeDir + "/.notify_slack.toml"
+		if fileExists(tomlFile) {
+			return tomlFile
+		}
+
+		tomlFile = homeDir + "/etc/notify_slack.toml"
 		if fileExists(tomlFile) {
 			return tomlFile
 		}
