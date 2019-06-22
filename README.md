@@ -108,6 +108,22 @@ Tips:
 
   * If you want to default to another channel only for snippet, you can use `snippet_channel`.
 
+### (Advanced) Environment Variables
+
+Some settings can be given by the following environment variables.
+
+```
+NOTIFY_SLACK_WEBHOOK_URL
+NOTIFY_SLACK_TOKEN
+NOTIFY_SLACK_CHANNEL
+NOTIFY_SLACK_SNIPPET_CHANNEL
+NOTIFY_SLACK_USERNAME
+NOTIFY_SLACK_ICON_EMOJI
+```
+
+It will be useful if you want to use it on a container. If you use it, you don't need a configuration file anymore.
+
+
 ## Release
 
 Version of `cli/cli.go` will be updated.
