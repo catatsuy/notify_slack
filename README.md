@@ -35,16 +35,16 @@ If both settings are specified, command line option will always take precedence.
 
 You post the file as a snippet. `token` and `channel` is required to use the Slack Web API.
 
-Slack's API can specify `filetype`. You can also specify `-filetype`. But it is automatically determined from the extension of the file.
-You make sure to give the appropriate extension.
-
-[file type | Slack](https://api.slack.com/types/file#file_types)
-
-If you want to upload to snippet via standard input, you can specify `filename`.
+If you want to upload to snippet via standard input, you must specify `-snippet`. If you specify `filename`, you can change the file name on Slack.
 
 ``` sh
 git diff | ./bin/notify_slack -snippet -filename git.diff
 ```
+
+Slack's API can specify `filetype`. You can also specify `-filetype`. But it is automatically determined from the extension of the file.
+You make sure to give the appropriate extension.
+
+[file type | Slack](https://api.slack.com/types/file#file_types)
 
 
 ### CLI options
