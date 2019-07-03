@@ -212,16 +212,22 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 		return fmt.Errorf("must specify channel for uploading to snippet")
 	}
 
+	var reader io.ReadCloser
 	if filename == "" {
-		filename = "/dev/stdin"
+		reader = os.Stdin
+	} else {
+		_, err := os.Stat(filename)
+		if err != nil {
+			return xerrors.Errorf("%s does not exist: %w", filename, err)
+		}
+		reader, err = os.Open(filename)
+		if err != nil {
+			return xerrors.Errorf("can't open %s: %w", filename, err)
+		}
 	}
+	defer reader.Close()
 
-	_, err := os.Stat(filename)
-	if err != nil {
-		return xerrors.Errorf("%s does not exist: %w", filename, err)
-	}
-
-	content, err := ioutil.ReadFile(filename)
+	content, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
 	}
