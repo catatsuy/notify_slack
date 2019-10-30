@@ -311,7 +311,7 @@ func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
 		t.Fatal("expected error, but nothing was returned")
 	}
 
-	expected := `Failed to read res.Body and the status code of the response from slack was not 200; body: {"ok":false,"error":"invalid_auth"}`
+	expected := `failed to read res.Body and the status code of the response from slack was not 200; body: {"ok":false,"error":"invalid_auth"}`
 	if !strings.Contains(err.Error(), expected) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expected)
 	}

@@ -16,9 +16,9 @@ func TestRun(t *testing.T) {
 	ex := NewExec(pr)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	testC := make(chan time.Time, 0)
+	testC := make(chan time.Time)
 	count := 0
-	fc := make(chan struct{}, 0)
+	fc := make(chan struct{})
 
 	flushCallback := func(_ context.Context, s string) error {
 		defer func() {

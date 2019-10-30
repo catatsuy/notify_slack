@@ -157,7 +157,7 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("Failed to read res.Body and the status code of the response from slack was not 200; body: %s", b)
+		return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200; body: %s", b)
 	}
 
 	apiRes := apiFilesUploadRes{}
