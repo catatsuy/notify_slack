@@ -15,7 +15,6 @@ import (
 	"github.com/catatsuy/notify_slack/config"
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -220,11 +219,11 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	} else {
 		_, err := os.Stat(filename)
 		if err != nil {
-			return xerrors.Errorf("%s does not exist: %w", filename, err)
+			return fmt.Errorf("%s does not exist: %w", filename, err)
 		}
 		reader, err = os.Open(filename)
 		if err != nil {
-			return xerrors.Errorf("can't open %s: %w", filename, err)
+			return fmt.Errorf("can't open %s: %w", filename, err)
 		}
 	}
 	defer reader.Close()

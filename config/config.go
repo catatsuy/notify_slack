@@ -1,12 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
 
 	toml "github.com/pelletier/go-toml"
-	"golang.org/x/xerrors"
 )
 
 type Config struct {
@@ -78,7 +78,7 @@ func (c *Config) LoadTOML(filename string) error {
 	if ok {
 		duration, err := time.ParseDuration(durationStr)
 		if err != nil {
-			return xerrors.Errorf("incorrect value to inteval option: %s: %w", durationStr, err)
+			return fmt.Errorf("incorrect value to inteval option: %s: %w", durationStr, err)
 		}
 		c.Duration = duration
 	}
