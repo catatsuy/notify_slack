@@ -17,9 +17,11 @@ import (
 	"github.com/catatsuy/notify_slack/throttle"
 )
 
-const (
-	Version = "v0.4.1"
+var (
+	Version string
+)
 
+const (
 	ExitCodeOK             = 0
 	ExitCodeParseFlagError = 1
 	ExitCodeFail           = 1
