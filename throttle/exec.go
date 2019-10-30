@@ -22,7 +22,7 @@ func NewExec(input io.Reader) *Exec {
 	return &Exec{
 		reader: reader,
 		writer: new(bytes.Buffer),
-		exitC:  make(chan struct{}, 0),
+		exitC:  make(chan struct{}),
 		mu:     sync.Mutex{},
 	}
 }
@@ -79,7 +79,6 @@ func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallb
 			select {
 			case <-interval:
 				flushCallback(ctx, ex.flush())
-				break
 			case <-ctx.Done():
 				doneCallback(ctx, ex.flush())
 				return
