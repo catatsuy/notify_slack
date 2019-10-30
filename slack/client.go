@@ -11,8 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"golang.org/x/xerrors"
 )
 
 var (
@@ -54,7 +52,7 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 
 	parsedURL, err := url.ParseRequestURI(urlStr)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to parse url: %s: %w", urlStr, err)
+		return nil, fmt.Errorf("failed to parse url: %s: %w", urlStr, err)
 	}
 
 	var discardLogger = log.New(ioutil.Discard, "", log.LstdFlags)
@@ -106,7 +104,7 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	if res.StatusCode != http.StatusOK {
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return xerrors.Errorf("failed to read res.Body and the status code of the response from slack was not 200: %w", err)
+			return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200: %w", err)
 		}
 		return fmt.Errorf("status code: %d; body: %s", res.StatusCode, b)
 	}
@@ -163,7 +161,7 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 	apiRes := apiFilesUploadRes{}
 	err = json.Unmarshal(b, &apiRes)
 	if err != nil {
-		return xerrors.Errorf("response returned from slack is not json: %w", err)
+		return fmt.Errorf("response returned from slack is not json: %w", err)
 	}
 
 	if !apiRes.OK {
