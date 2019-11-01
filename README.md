@@ -53,23 +53,23 @@ You make sure to give the appropriate extension.
 -c string
       config file name
 -channel string
-      specify channel
+      specify channel (unavailable for new Incoming Webhooks)
 -filename string
       specify a file name (for uploading to snippet)
 -filetype string
       specify a filetype (for uploading to snippet)
 -icon-emoji string
-      specify icon emoji
+      specify icon emoji (unavailable for new Incoming Webhooks)
 -interval duration
       interval (default 1s)
 -slack-url string
-      slack url
+      slack url (Incoming Webhooks URL)
 -snippet
       switch to snippet uploading mode
 -token string
       token (for uploading to snippet)
 -username string
-      specify username
+      specify username (unavailable for new Incoming Webhooks)
 -version
       Print version information and quit
 ```
