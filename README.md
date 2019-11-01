@@ -97,7 +97,7 @@ interval = "1s"
 
 Note:
 
-  * `url` is a required parameter.
+  * `url` is necessary if you want to post to slack as text.
     * You can specify `channel`, `username`, `icon_emoji` and `interval`.
   * `token` and `channel` is necessary if you want to post to snippet.
     * `username` and `icon_emoji` are ignored in this case.

@@ -172,7 +172,7 @@ func TestPostFile_Success(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", nil)
+	c, err := NewClientForPostFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +232,7 @@ func TestPostFile_Success_provideFiletype(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", nil)
+	c, err := NewClientForPostFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,7 +263,7 @@ func TestPostFile_FailNotOk(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", nil)
+	c, err := NewClientForPostFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +300,7 @@ func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", nil)
+	c, err := NewClientForPostFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func TestPostFile_FailNotJSON(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClient("https://example.com", nil)
+	c, err := NewClientForPostFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -125,18 +125,13 @@ func (c *CLI) Run(args []string) int {
 		c.conf.IconEmoji = os.Getenv("NOTIFY_SLACK_ICON_EMOJI")
 	}
 
-	if c.conf.SlackURL == "" {
-		fmt.Fprintln(c.errStream, "must specify Slack URL")
-		return ExitCodeFail
-	}
-
-	c.sClient, err = slack.NewClient(c.conf.SlackURL, nil)
-	if err != nil {
-		fmt.Fprintln(c.errStream, err)
-		return ExitCodeFail
-	}
-
 	if filename != "" || snippetMode {
+		c.sClient, err = slack.NewClientForPostFile(nil)
+		if err != nil {
+			fmt.Fprintln(c.errStream, err)
+			return ExitCodeFail
+		}
+
 		if c.conf.Token == "" {
 			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
 			return ExitCodeFail
@@ -149,6 +144,17 @@ func (c *CLI) Run(args []string) int {
 		}
 
 		return ExitCodeOK
+	}
+
+	if c.conf.SlackURL == "" {
+		fmt.Fprintln(c.errStream, "must specify Slack URL")
+		return ExitCodeFail
+	}
+
+	c.sClient, err = slack.NewClient(c.conf.SlackURL, nil)
+	if err != nil {
+		fmt.Fprintln(c.errStream, err)
+		return ExitCodeFail
 	}
 
 	copyStdin := io.TeeReader(c.inputStream, c.outStream)
