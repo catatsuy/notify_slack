@@ -129,7 +129,7 @@ At first, you need to create new app. Please access https://api.slack.com/apps.
 
 1. click `Install App to Workspace`
 2. install your app
-3. copy `OAuth Access Token` beginnging with `xoxp-`
+3. copy `OAuth Access Token` beginning with `xoxp-`
 
 ### (Advanced) Environment Variables
 
