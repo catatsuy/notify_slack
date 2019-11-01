@@ -99,9 +99,11 @@ Note:
 
   * `url` is necessary if you want to post to slack as text.
     * You can specify `channel`, `username`, `icon_emoji` and `interval`.
+    * Now, you cannot override `channel`, `username`, `icon_emoji` due to the specification change of Incoming Webhooks. Please refer to https://api.slack.com/messaging/webhooks#advanced_message_formatting
+    * Incoming Webhooks url can be created on https://slack.com/services/new/incoming-webhook
   * `token` and `channel` is necessary if you want to post to snippet.
     * `username` and `icon_emoji` are ignored in this case.
-  * webhook url can be created on https://slack.com/services/new/incoming-webhook
+    * Please see the next section for how to create token.
 
 Tips:
 
