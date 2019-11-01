@@ -69,6 +69,20 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	return client, nil
 }
 
+func NewClientForPostFile(logger *log.Logger) (*Client, error) {
+	var discardLogger = log.New(ioutil.Discard, "", log.LstdFlags)
+	if logger == nil {
+		logger = discardLogger
+	}
+
+	client := &Client{
+		HTTPClient: http.DefaultClient,
+		Logger:     logger,
+	}
+
+	return client, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, body io.Reader) (*http.Request, error) {
 	u := *c.URL
 
