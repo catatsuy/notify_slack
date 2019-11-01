@@ -101,12 +101,35 @@ Note:
     * You can specify `channel`, `username`, `icon_emoji` and `interval`.
   * `token` and `channel` is necessary if you want to post to snippet.
     * `username` and `icon_emoji` are ignored in this case.
-  * token can be created on https://api.slack.com/custom-integrations/legacy-tokens
   * webhook url can be created on https://slack.com/services/new/incoming-webhook
 
 Tips:
 
   * If you want to default to another channel only for snippet, you can use `snippet_channel`.
+
+### How to create a token
+
+You need to create a token if you use snippet uploading mode.
+
+#### Create New App
+
+At first, you need to create new app. Please access https://api.slack.com/apps.
+
+1. click `Create New App`
+2. input application name to `App Name`
+3. select your workspace on `Development Slack Workspace`
+4. click `Create App`
+
+#### Basic Information
+
+1. click `Permissions` on `Add features and functionality`
+2. select `files:write:user` on `Scopes` and click `Save Changes`
+
+#### OAuth & Permissions
+
+1. click `Install App to Workspace`
+2. install your app
+3. copy `OAuth Access Token` beginnging with `xoxp-`
 
 ### (Advanced) Environment Variables
 
