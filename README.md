@@ -88,7 +88,7 @@ The contents of the toml file are as follows.
 ```toml:notify_slack.toml
 [slack]
 url = "https://hooks.slack.com/services/**"
-token = "xxxxx"
+token = "xoxp-xxxxx"
 channel = "#general"
 username = "tester"
 icon_emoji = ":rocket:"
