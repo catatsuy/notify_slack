@@ -1,0 +1,45 @@
+name: Release Go Project
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13.x
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+
+    - name: setup tools
+      run: |
+        mkdir ~/bin
+        curl -sL https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz | tar zxvf - && install ghr_v0.13.0_linux_amd64/ghr ~/bin/
+
+    - name: test
+      run: |
+        make vet
+        make test
+        make bin/notify_slack
+
+    - name: release
+      run: |
+        tag_name=$github_tag
+        make release version=${tag_name:10}
+      env:
+        github_tag: ${{ github.ref }}
+
+    - name: upload
+      run: |
+        tag_name=$github_tag
+        PATH=~/bin:$PATH ghr -t $github_token -u catatsuy -r notify_slack -c $github_sha1 -delete ${tag_name:10} ./release/
+      env:
+        github_tag: ${{ github.ref }}
+        github_sha1: ${{ github.sha }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
