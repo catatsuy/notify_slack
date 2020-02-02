@@ -151,7 +151,7 @@ It will be useful if you want to use it on a container. If you use it, you don't
 
 ## Release
 
-When you execute the following command and give a tag, it will be released via CircleCI.
+When you execute the following command and give a tag, it will be released via GitHub Actions.
 
 ``` sh
 git tag v0.3.0
