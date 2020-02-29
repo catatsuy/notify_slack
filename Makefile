@@ -12,14 +12,6 @@ bin/notify_slack: cmd/notify_slack/main.go slack/*.go throttle/*.go config/*.go 
 bin/output: cmd/output/main.go
 	go build -o bin/output cmd/output/main.go
 
-.PHONY: release
-release:
-	GOOS=linux go build -ldflags "-X github.com/catatsuy/notify_slack/cli.Version=${version}" -o notify_slack cmd/notify_slack/main.go
-	tar cvzf release/notify_slack-linux-amd64.tar.gz notify_slack
-	GOOS=darwin go build -ldflags "-X github.com/catatsuy/notify_slack/cli.Version=${version}" -o notify_slack cmd/notify_slack/main.go
-	tar cvzf release/notify_slack-darwin-amd64.tar.gz notify_slack
-	rm notify_slack
-
 .PHONY: test
 test:
 	go test -count 10 ./...
