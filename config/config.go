@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	toml "github.com/pelletier/go-toml"
+)
+
+var (
+	userHomeDir = os.UserHomeDir
 )
 
 type Config struct {
@@ -91,14 +96,14 @@ func LoadTOMLFilename(filename string) string {
 		return filename
 	}
 
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := userHomeDir()
 	if err == nil {
-		tomlFile := homeDir + "/.notify_slack.toml"
+		tomlFile := filepath.Join(homeDir, ".notify_slack.toml")
 		if fileExists(tomlFile) {
 			return tomlFile
 		}
 
-		tomlFile = homeDir + "/etc/notify_slack.toml"
+		tomlFile = filepath.Join(homeDir, "/etc/notify_slack.toml")
 		if fileExists(tomlFile) {
 			return tomlFile
 		}

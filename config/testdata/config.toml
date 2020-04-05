@@ -1,0 +1,8 @@
+[slack]
+url = "https://hooks.slack.com/aaaaa"
+token = "xoxp-token"
+channel = "#test"
+snippet_channel = "#general"
+username = "deploy!"
+icon_emoji = ":rocket:"
+interval = "2s"
