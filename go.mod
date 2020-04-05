@@ -1,5 +1,5 @@
 module github.com/catatsuy/notify_slack
 
-go 1.13
+go 1.14
 
-require github.com/pelletier/go-toml v1.6.0
+require github.com/pelletier/go-toml v1.7.0
