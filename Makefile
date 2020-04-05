@@ -14,7 +14,7 @@ bin/output: cmd/output/main.go
 
 .PHONY: test
 test:
-	go test -count 10 ./...
+	go test -cover -count 10 ./...
 
 .PHONY: vet
 vet:
