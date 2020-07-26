@@ -4,6 +4,10 @@ Notify slack from the command line. It receives standard input and notifies Slac
 
 Please watch this video. https://www.youtube.com/watch?v=wmKSr9Aoz-Y
 
+I wrote this article on Notion in Japanese.
+
+[How to use notify_slack](https://www.notion.so/How-to-use-notify_slack-fd82abd3d62a46fa88700a62d97903c8)
+
 ## Installation
 
 ```
