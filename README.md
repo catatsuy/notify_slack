@@ -10,17 +10,21 @@ I wrote this article on Notion in Japanese.
 
 ## Installation
 
+I recommend you to use the binaries on [GitHub Releases](https://github.com/catatsuy/notify_slack/releases). Please download the latest version and use it.
+
+If you have a development environment for the Go language, you can compile and install it by yourself.
+
 ```
 GO111MODULE=on go get github.com/catatsuy/notify_slack/cmd/notify_slack
 ```
 
-Or you download from [Releases](https://github.com/catatsuy/notify_slack/releases).
-
-If you want to develop, please use the `make`. This software requires Go 1.13 or higher.
+If you want to develop it, you can use the `make`. It requires Go 1.13 or higher.
 
 ```
 make
 ```
+
+If you compile it by yourself, the output of `notify_slack -version` will not be appropriate. The source code doesn't contain version information.
 
 ## usage
 
