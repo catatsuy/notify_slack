@@ -20,7 +20,7 @@ If you want to develop it, you can use the `make`. It requires Go 1.15 or higher
 make
 ```
 
-If you compile it by yourself, the output of `notify_slack -version` will not be appropriate. The source code doesn't contain version information.
+If you use `make`, the output of `notify_slack -version` is git commit ID.
 
 ## usage
 
@@ -157,13 +157,3 @@ NOTIFY_SLACK_ICON_EMOJI
 ```
 
 It will be useful if you want to use it on a container. If you use it, you don't need a configuration file anymore.
-
-
-## Release
-
-When you execute the following command and give a tag, it will be released via GitHub Actions.
-
-``` sh
-git tag v0.3.0
-git push origin v0.3.0
-```
