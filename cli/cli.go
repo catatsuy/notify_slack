@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -31,12 +32,25 @@ type CLI struct {
 	outStream, errStream io.Writer
 	inputStream          io.Reader
 
-	sClient slack.Slack
-	conf    *config.Config
+	sClient    slack.Slack
+	conf       *config.Config
+	appVersion string
 }
 
 func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
-	return &CLI{outStream: outStream, errStream: errStream, inputStream: inputStream}
+	return &CLI{appVersion: version(), outStream: outStream, errStream: errStream, inputStream: inputStream}
+}
+
+func version() string {
+	if Version != "" {
+		return Version
+	}
+
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(devel)"
+	}
+	return info.Main.Version
 }
 
 func (c *CLI) Run(args []string) int {
@@ -73,7 +87,7 @@ func (c *CLI) Run(args []string) int {
 	}
 
 	if version {
-		fmt.Fprintf(c.errStream, "notify_slack version %s; %s\n", Version, runtime.Version())
+		fmt.Fprintf(c.errStream, "notify_slack version %s; %s\n", c.appVersion, runtime.Version())
 		return ExitCodeOK
 	}
 

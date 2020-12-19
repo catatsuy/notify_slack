@@ -9,7 +9,7 @@ builds:
     binary: notify_slack
     ldflags:
       - -s -w
-      - -X github.com/catatsuy/notify_slack/cli.Version={{.Version}}
+      - -X github.com/catatsuy/notify_slack/cli.Version=v{{.Version}}
     env:
       - CGO_ENABLED=0
     goarch:
