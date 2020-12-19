@@ -14,7 +14,7 @@ If you have a development environment for the Go language, you can compile and i
 GO111MODULE=on go get github.com/catatsuy/notify_slack/cmd/notify_slack
 ```
 
-If you want to develop it, you can use the `make`. It requires Go 1.13 or higher.
+If you want to develop it, you can use the `make`. It requires Go 1.15 or higher.
 
 ```
 make
