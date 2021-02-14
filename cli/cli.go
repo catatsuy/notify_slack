@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
@@ -243,7 +242,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 	defer reader.Close()
 
-	content, err := ioutil.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -55,7 +54,7 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 		return nil, fmt.Errorf("failed to parse url: %s: %w", urlStr, err)
 	}
 
-	var discardLogger = log.New(ioutil.Discard, "", log.LstdFlags)
+	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
 	if logger == nil {
 		logger = discardLogger
 	}
@@ -70,7 +69,7 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 }
 
 func NewClientForPostFile(logger *log.Logger) (*Client, error) {
-	var discardLogger = log.New(ioutil.Discard, "", log.LstdFlags)
+	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
 	if logger == nil {
 		logger = discardLogger
 	}
@@ -116,7 +115,7 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200: %w", err)
 		}
@@ -163,7 +162,7 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 		return err
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
