@@ -175,8 +175,8 @@ func (c *CLI) Run(args []string) int {
 
 	ex := throttle.NewExec(copyStdin)
 
-	exitC := make(chan os.Signal, 1)
-	signal.Notify(exitC, syscall.SIGTERM, syscall.SIGINT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
 	channel := c.conf.PrimaryChannel
 	if channel == "" {
@@ -196,7 +196,7 @@ func (c *CLI) Run(args []string) int {
 
 	done := make(chan struct{})
 
-	doneCallback := func(ctx context.Context, output string) error {
+	doneCallback := func(output string) error {
 		defer func() {
 			done <- struct{}{}
 		}()
@@ -207,14 +207,10 @@ func (c *CLI) Run(args []string) int {
 	ticker := time.NewTicker(c.conf.Duration)
 	defer ticker.Stop()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	ex.Start(ctx, ticker.C, flushCallback, doneCallback)
 
-	select {
-	case <-exitC:
-	case <-ex.Wait():
-	}
 	cancel()
 
 	<-done

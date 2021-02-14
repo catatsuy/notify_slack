@@ -51,7 +51,7 @@ func (ex *Exec) stringAndReset() string {
 	return ex.writer.String()
 }
 
-func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) {
+func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(output string) error) {
 	go func() {
 		for {
 			line, _, err := ex.reader.ReadLine()
@@ -71,7 +71,7 @@ func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallb
 				panic(err)
 			}
 		}
-		ex.exitC <- struct{}{}
+		ex.Close()
 	}()
 
 	go func() {
@@ -80,11 +80,23 @@ func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallb
 			case <-interval:
 				flushCallback(ctx, ex.flush())
 			case <-ctx.Done():
-				doneCallback(ctx, ex.flush())
+				doneCallback(ex.flush())
+				ex.Close()
 				return
 			}
 		}
 	}()
+
+	ex.Wait()
+	return
+}
+
+var once sync.Once
+
+func (ex *Exec) Close() {
+	once.Do(func() {
+		close(ex.exitC)
+	})
 }
 
 func (ex *Exec) Wait() <-chan struct{} {
