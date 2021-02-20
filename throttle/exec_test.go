@@ -38,6 +38,7 @@ func TestRun_pipeClose(t *testing.T) {
 
 	doneCallback := func(s string) error {
 		defer func() {
+			// If goroutine is not used, tests cannot be run multiple times
 			go func() {
 				fc <- struct{}{}
 			}()
@@ -132,6 +133,7 @@ func TestRun_contextDone(t *testing.T) {
 
 	doneCallback := func(s string) error {
 		defer func() {
+			// If goroutine is not used, tests cannot be run multiple times
 			go func() {
 				fc <- struct{}{}
 			}()
