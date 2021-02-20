@@ -198,7 +198,10 @@ func (c *CLI) Run(args []string) int {
 
 	doneCallback := func(output string) error {
 		defer func() {
-			done <- struct{}{}
+			// If goroutine is not used, it will not exit when the pipe is closed
+			go func() {
+				done <- struct{}{}
+			}()
 		}()
 
 		return flushCallback(output)
