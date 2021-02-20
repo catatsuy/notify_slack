@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestRun(t *testing.T) {
+func TestRun_pipeClose(t *testing.T) {
 	pr, pw := io.Pipe()
 
 	output := new(bytes.Buffer)
@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 	count := 0
 	fc := make(chan struct{})
 
-	flushCallback := func(_ context.Context, s string) error {
+	flushCallback := func(s string) error {
 		defer func() {
 			fc <- struct{}{}
 			// to random fail from Go 1.12 or later
@@ -36,7 +36,7 @@ func TestRun(t *testing.T) {
 
 	doneCount := 0
 
-	doneCallback := func(_ context.Context, s string) error {
+	doneCallback := func(s string) error {
 		defer func() {
 			fc <- struct{}{}
 		}()
@@ -48,7 +48,11 @@ func TestRun(t *testing.T) {
 		return nil
 	}
 
-	ex.Start(ctx, testC, flushCallback, doneCallback)
+	exitC := make(chan struct{})
+	go func() {
+		ex.Start(ctx, testC, flushCallback, doneCallback)
+		close(exitC)
+	}()
 
 	testC <- time.Time{}
 	<-fc
@@ -82,7 +86,7 @@ func TestRun(t *testing.T) {
 
 	// do not panic
 	pw.Close()
-	<-ex.Wait()
+	<-exitC
 
 	cancel()
 	<-fc

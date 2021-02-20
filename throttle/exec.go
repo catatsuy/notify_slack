@@ -51,7 +51,7 @@ func (ex *Exec) stringAndReset() string {
 	return ex.writer.String()
 }
 
-func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) {
+func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(output string) error, doneCallback func(output string) error) {
 	go func() {
 		for {
 			line, _, err := ex.reader.ReadLine()
@@ -71,20 +71,23 @@ func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallb
 				panic(err)
 			}
 		}
-		ex.exitC <- struct{}{}
+		// if notify_slack receives EOF, this function will exit.
+		close(ex.exitC)
 	}()
 
-	go func() {
-		for {
-			select {
-			case <-interval:
-				flushCallback(ctx, ex.flush())
-			case <-ctx.Done():
-				doneCallback(ctx, ex.flush())
-				return
-			}
+L:
+	for {
+		select {
+		case <-interval:
+			flushCallback(ex.flush())
+		case <-ctx.Done():
+			doneCallback(ex.flush())
+			break L
+		case <-ex.Wait():
+			doneCallback(ex.flush())
+			break L
 		}
-	}()
+	}
 }
 
 func (ex *Exec) Wait() <-chan struct{} {
