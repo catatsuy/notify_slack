@@ -38,7 +38,9 @@ func TestRun_pipeClose(t *testing.T) {
 
 	doneCallback := func(s string) error {
 		defer func() {
-			fc <- struct{}{}
+			go func() {
+				fc <- struct{}{}
+			}()
 		}()
 
 		doneCount++
