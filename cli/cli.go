@@ -119,24 +119,10 @@ func (c *CLI) Run(args []string) int {
 		}
 	}
 
-	// environment variables
-	if c.conf.SlackURL == "" {
-		c.conf.SlackURL = os.Getenv("NOTIFY_SLACK_WEBHOOK_URL")
-	}
-	if c.conf.Token == "" {
-		c.conf.Token = os.Getenv("NOTIFY_SLACK_TOKEN")
-	}
-	if c.conf.Channel == "" {
-		c.conf.Channel = os.Getenv("NOTIFY_SLACK_CHANNEL")
-	}
-	if c.conf.SnippetChannel == "" {
-		c.conf.SnippetChannel = os.Getenv("NOTIFY_SLACK_SNIPPET_CHANNEL")
-	}
-	if c.conf.Username == "" {
-		c.conf.Username = os.Getenv("NOTIFY_SLACK_USERNAME")
-	}
-	if c.conf.IconEmoji == "" {
-		c.conf.IconEmoji = os.Getenv("NOTIFY_SLACK_ICON_EMOJI")
+	err = c.conf.LoadEnv()
+	if err != nil {
+		fmt.Fprintln(c.errStream, err)
+		return ExitCodeFail
 	}
 
 	if filename != "" || snippetMode {
