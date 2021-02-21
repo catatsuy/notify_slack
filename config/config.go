@@ -54,6 +54,15 @@ func (c *Config) LoadEnv() error {
 		c.IconEmoji = os.Getenv("NOTIFY_SLACK_ICON_EMOJI")
 	}
 
+	durationStr := os.Getenv("NOTIFY_SLACK_INTERVAL")
+	if durationStr != "" {
+		duration, err := time.ParseDuration(durationStr)
+		if err != nil {
+			return fmt.Errorf("incorrect value to inteval option from NOTIFY_SLACK_INTERVAL: %s: %w", durationStr, err)
+		}
+		c.Duration = duration
+	}
+
 	return nil
 }
 

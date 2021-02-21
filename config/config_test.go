@@ -60,6 +60,8 @@ func TestLoadEnv(t *testing.T) {
 	expectedSnippetChannel := "#general"
 	expectedUsername := "deploy!"
 	expectedIconEmoji := ":rocket:"
+	expectedIntervalStr := "2s"
+	expectedInterval := time.Duration(2 * time.Second)
 
 	reset1 := setTestEnv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
 	reset2 := setTestEnv("NOTIFY_SLACK_TOKEN", expectedToken)
@@ -67,15 +69,20 @@ func TestLoadEnv(t *testing.T) {
 	reset4 := setTestEnv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
 	reset5 := setTestEnv("NOTIFY_SLACK_USERNAME", expectedUsername)
 	reset6 := setTestEnv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
+	reset7 := setTestEnv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
 	defer reset1()
 	defer reset2()
 	defer reset3()
 	defer reset4()
 	defer reset5()
 	defer reset6()
+	defer reset7()
 
 	c := NewConfig()
-	c.LoadEnv()
+	err := c.LoadEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if c.SlackURL != expectedSlackURL {
 		t.Errorf("got %s, want %s", c.SlackURL, expectedSlackURL)
@@ -99,6 +106,10 @@ func TestLoadEnv(t *testing.T) {
 
 	if c.IconEmoji != expectedIconEmoji {
 		t.Errorf("got %s, want %s", c.IconEmoji, expectedIconEmoji)
+	}
+
+	if c.Duration != expectedInterval {
+		t.Errorf("got %+v, want %+v", c.Duration, expectedInterval)
 	}
 }
 
