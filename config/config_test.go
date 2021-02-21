@@ -45,6 +45,63 @@ func TestLoadTOML(t *testing.T) {
 	}
 }
 
+func setTestEnv(key, val string) func() {
+	preVal := os.Getenv(key)
+	os.Setenv(key, val)
+	return func() {
+		os.Setenv(key, preVal)
+	}
+}
+
+func TestLoadEnv(t *testing.T) {
+	expectedSlackURL := "https://hooks.slack.com/aaaaa"
+	expectedToken := "xoxp-token"
+	expectedChannel := "#test"
+	expectedSnippetChannel := "#general"
+	expectedUsername := "deploy!"
+	expectedIconEmoji := ":rocket:"
+
+	reset1 := setTestEnv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
+	reset2 := setTestEnv("NOTIFY_SLACK_TOKEN", expectedToken)
+	reset3 := setTestEnv("NOTIFY_SLACK_CHANNEL", expectedChannel)
+	reset4 := setTestEnv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
+	reset5 := setTestEnv("NOTIFY_SLACK_USERNAME", expectedUsername)
+	reset6 := setTestEnv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
+	defer reset1()
+	defer reset2()
+	defer reset3()
+	defer reset4()
+	defer reset5()
+	defer reset6()
+
+	c := NewConfig()
+	c.LoadEnv()
+
+	if c.SlackURL != expectedSlackURL {
+		t.Errorf("got %s, want %s", c.SlackURL, expectedSlackURL)
+	}
+
+	if c.Token != expectedToken {
+		t.Errorf("got %s, want %s", c.Token, expectedToken)
+	}
+
+	if c.Channel != expectedChannel {
+		t.Errorf("got %s, want %s", c.Channel, expectedChannel)
+	}
+
+	if c.SnippetChannel != expectedSnippetChannel {
+		t.Errorf("got %s, want %s", c.SnippetChannel, expectedSnippetChannel)
+	}
+
+	if c.Username != expectedUsername {
+		t.Errorf("got %s, want %s", c.Username, expectedUsername)
+	}
+
+	if c.IconEmoji != expectedIconEmoji {
+		t.Errorf("got %s, want %s", c.IconEmoji, expectedIconEmoji)
+	}
+}
+
 func TestLoadTOMLFilename(t *testing.T) {
 	baseDir := "./testdata/"
 	defer SetUserHomeDir(baseDir)()

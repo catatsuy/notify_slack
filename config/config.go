@@ -29,6 +29,34 @@ func NewConfig() *Config {
 	return &Config{}
 }
 
+func (c *Config) LoadEnv() error {
+	if c.SlackURL == "" {
+		c.SlackURL = os.Getenv("NOTIFY_SLACK_WEBHOOK_URL")
+	}
+
+	if c.Token == "" {
+		c.Token = os.Getenv("NOTIFY_SLACK_TOKEN")
+	}
+
+	if c.Channel == "" {
+		c.Channel = os.Getenv("NOTIFY_SLACK_CHANNEL")
+	}
+
+	if c.SnippetChannel == "" {
+		c.SnippetChannel = os.Getenv("NOTIFY_SLACK_SNIPPET_CHANNEL")
+	}
+
+	if c.Username == "" {
+		c.Username = os.Getenv("NOTIFY_SLACK_USERNAME")
+	}
+
+	if c.IconEmoji == "" {
+		c.IconEmoji = os.Getenv("NOTIFY_SLACK_ICON_EMOJI")
+	}
+
+	return nil
+}
+
 func (c *Config) LoadTOML(filename string) error {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
