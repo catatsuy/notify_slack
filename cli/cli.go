@@ -175,8 +175,8 @@ func (c *CLI) Run(args []string) int {
 
 	ex := throttle.NewExec(copyStdin)
 
-	exitC := make(chan os.Signal, 1)
-	signal.Notify(exitC, syscall.SIGTERM, syscall.SIGINT)
+	sigC := make(chan os.Signal, 1)
+	signal.Notify(sigC, syscall.SIGTERM, syscall.SIGINT)
 
 	channel := c.conf.PrimaryChannel
 	if channel == "" {
@@ -189,19 +189,22 @@ func (c *CLI) Run(args []string) int {
 		IconEmoji: c.conf.IconEmoji,
 	}
 
-	flushCallback := func(_ context.Context, output string) error {
+	flushCallback := func(output string) error {
 		param.Text = output
 		return c.sClient.PostText(context.Background(), param)
 	}
 
 	done := make(chan struct{})
 
-	doneCallback := func(ctx context.Context, output string) error {
+	doneCallback := func(output string) error {
 		defer func() {
-			done <- struct{}{}
+			// If goroutine is not used, it will not exit when the pipe is closed
+			go func() {
+				done <- struct{}{}
+			}()
 		}()
 
-		return flushCallback(ctx, output)
+		return flushCallback(output)
 	}
 
 	ticker := time.NewTicker(c.conf.Duration)
@@ -209,11 +212,15 @@ func (c *CLI) Run(args []string) int {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	ex.Start(ctx, ticker.C, flushCallback, doneCallback)
+	exitC := make(chan struct{})
+	go func() {
+		ex.Start(ctx, ticker.C, flushCallback, doneCallback)
+		close(exitC)
+	}()
 
 	select {
+	case <-sigC:
 	case <-exitC:
-	case <-ex.Wait():
 	}
 	cancel()
 
