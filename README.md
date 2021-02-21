@@ -154,6 +154,7 @@ NOTIFY_SLACK_CHANNEL
 NOTIFY_SLACK_SNIPPET_CHANNEL
 NOTIFY_SLACK_USERNAME
 NOTIFY_SLACK_ICON_EMOJI
+NOTIFY_SLACK_INTERVAL
 ```
 
 It will be useful if you want to use it on a container. If you use it, you don't need a configuration file anymore.
