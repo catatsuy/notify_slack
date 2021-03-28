@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.4.10] - 2021-03-28
+
+### Changed
+
+* Require Go 1.16
+
 ## [v0.4.9] - 2021-02-21
 
 ### Added
