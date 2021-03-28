@@ -160,8 +160,8 @@ func (c *CLI) Run(args []string) int {
 
 	ex := throttle.NewExec(copyStdin)
 
-	sigC := make(chan os.Signal, 1)
-	signal.Notify(sigC, syscall.SIGTERM, syscall.SIGINT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
 	channel := c.conf.PrimaryChannel
 	if channel == "" {
@@ -195,20 +195,7 @@ func (c *CLI) Run(args []string) int {
 	ticker := time.NewTicker(c.conf.Duration)
 	defer ticker.Stop()
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	exitC := make(chan struct{})
-	go func() {
-		ex.Start(ctx, ticker.C, flushCallback, doneCallback)
-		close(exitC)
-	}()
-
-	select {
-	case <-sigC:
-	case <-exitC:
-	}
-	cancel()
-
+	ex.Start(ctx, ticker.C, flushCallback, doneCallback)
 	<-done
 
 	return ExitCodeOK
