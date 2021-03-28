@@ -3,7 +3,7 @@ package slack_test
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -61,7 +61,7 @@ func TestPostText_Success(t *testing.T) {
 			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
 		}
 
-		bodyBytes, err := ioutil.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -146,7 +146,7 @@ func TestPostFile_Success(t *testing.T) {
 			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
 		}
 
-		bodyBytes, err := ioutil.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -205,7 +205,7 @@ func TestPostFile_Success_provideFiletype(t *testing.T) {
 			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
 		}
 
-		bodyBytes, err := ioutil.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Fatal(err)
 		}
