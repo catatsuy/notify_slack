@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.4.11] - 2021-06-26
+
+### Changed
+
+* update Go version
+
 ## [v0.4.10] - 2021-03-28
 
 ### Changed
