@@ -121,26 +121,26 @@ You need to create a token if you use snippet uploading mode.
 
 At first, you need to create new app. Please access https://api.slack.com/apps.
 
-1. click `Create New App`
+1. click `Create New App` and click `From scratch`
 2. input application name to `App Name`
-3. select your workspace on `Development Slack Workspace`
+3. select your workspace on `Pick a workspace to develop your app in:`
 4. click `Create App`
 
 #### Basic Information
 
 1. click `Permissions` on `Add features and functionality`
-2. select `files:write:user` on `Scopes` and click `Save Changes`. You are able to choose `Bot Token Scopes` or `User Token Scopes`
+2. select `files:write` on `Scopes` and click `Save Changes`. You are able to choose `Bot Token Scopes` or `User Token Scopes`
 
 #### OAuth & Permissions
 
-1. click `Install App to Workspace`
+1. click `Install to Workspace` on `OAuth Tokens for Your Workspace`
 2. install your app
 3. copy `OAuth Access Token` beginning with `xoxp-` or `Bot User OAuth Access Token` beginning with `xoxb-`
 
 #### Add apps
 
-1. click `Details` on the channel which you want to post
-2. click `Add apps` on `More`
+1. click channel name on the channel which you want to post
+2. click `Integrations` and `Add an App` in `Apps`
 3. choose your app
 
 ### (Advanced) Environment Variables
