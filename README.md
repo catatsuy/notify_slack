@@ -1,6 +1,6 @@
 # notify_slack
 
-Notify slack from the command line. It receives standard input and notifies Slack all at once every second (can be changed with the `-interval` option).
+Post to Slack from the command line. If you pass the standard output of the command to notify_slack by pipe, it will post to slack once a second (can be changed with the `-interval` option).
 
 Please watch this video. https://www.youtube.com/watch?v=wmKSr9Aoz-Y
 
