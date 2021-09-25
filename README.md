@@ -11,7 +11,7 @@ I recommend you to use the binaries on [GitHub Releases](https://github.com/cata
 If you have a development environment for the Go language, you can compile and install it by yourself.
 
 ```
-GO111MODULE=on go get github.com/catatsuy/notify_slack/cmd/notify_slack
+go install github.com/catatsuy/notify_slack/cmd/notify_slack@latest
 ```
 
 If you want to develop it, you can use the `make`. It requires Go 1.16 or higher.
