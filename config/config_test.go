@@ -45,14 +45,6 @@ func TestLoadTOML(t *testing.T) {
 	}
 }
 
-func setTestEnv(key, val string) func() {
-	preVal := os.Getenv(key)
-	os.Setenv(key, val)
-	return func() {
-		os.Setenv(key, preVal)
-	}
-}
-
 func TestLoadEnv(t *testing.T) {
 	expectedSlackURL := "https://hooks.slack.com/aaaaa"
 	expectedToken := "xoxp-token"
@@ -63,20 +55,13 @@ func TestLoadEnv(t *testing.T) {
 	expectedIntervalStr := "2s"
 	expectedInterval := time.Duration(2 * time.Second)
 
-	reset1 := setTestEnv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
-	reset2 := setTestEnv("NOTIFY_SLACK_TOKEN", expectedToken)
-	reset3 := setTestEnv("NOTIFY_SLACK_CHANNEL", expectedChannel)
-	reset4 := setTestEnv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
-	reset5 := setTestEnv("NOTIFY_SLACK_USERNAME", expectedUsername)
-	reset6 := setTestEnv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
-	reset7 := setTestEnv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
-	defer reset1()
-	defer reset2()
-	defer reset3()
-	defer reset4()
-	defer reset5()
-	defer reset6()
-	defer reset7()
+	t.Setenv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
+	t.Setenv("NOTIFY_SLACK_TOKEN", expectedToken)
+	t.Setenv("NOTIFY_SLACK_CHANNEL", expectedChannel)
+	t.Setenv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
+	t.Setenv("NOTIFY_SLACK_USERNAME", expectedUsername)
+	t.Setenv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
+	t.Setenv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
 
 	c := NewConfig()
 	err := c.LoadEnv()
