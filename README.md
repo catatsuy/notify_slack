@@ -2,7 +2,9 @@
 
 Post to Slack from the command line. If you pass the standard output of the command to notify_slack by pipe, it will post to slack once a second (can be changed with the `-interval` option).
 
-Please watch this video. https://www.youtube.com/watch?v=wmKSr9Aoz-Y
+https://user-images.githubusercontent.com/1249910/155869750-48f7500f-4481-49b6-9d65-b93205f2b94f.mp4
+
+(same movie) https://www.youtube.com/watch?v=wmKSr9Aoz-Y
 
 ## Installation
 
