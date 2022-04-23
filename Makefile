@@ -1,5 +1,3 @@
-export GO111MODULE=on
-
 .PHONY: all
 all: bin/notify_slack bin/output
 
@@ -14,7 +12,7 @@ bin/output: cmd/output/main.go
 
 .PHONY: test
 test:
-	go test -cover -count 10 ./...
+	go test -shuffle on -cover -count 10 ./...
 
 .PHONY: vet
 vet:
