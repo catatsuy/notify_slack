@@ -1,5 +1,13 @@
 # Change Log
 
+## [v0.4.12] - Not released
+
+### Changed
+
+* update Go version (require Go 1.17 or higher)
+* update dependent libraries
+* update README
+
 ## [v0.4.11] - 2021-06-26
 
 ### Changed
