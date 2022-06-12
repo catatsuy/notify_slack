@@ -1,6 +1,6 @@
 # Change Log
 
-## [v0.4.12] - Not released
+## [v0.4.12] - 2022-06-12
 
 ### Changed
 
