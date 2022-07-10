@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.4.13] - 2022-07-10
+
+### Changed
+
+* Fixed a bug #101 @gongqi-zhen
+
 ## [v0.4.12] - 2022-06-12
 
 ### Changed
