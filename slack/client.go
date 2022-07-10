@@ -113,6 +113,7 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		b, err := io.ReadAll(res.Body)
@@ -161,6 +162,7 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
