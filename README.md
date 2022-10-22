@@ -16,7 +16,7 @@ If you have a development environment for the Go language, you can compile and i
 go install github.com/catatsuy/notify_slack/cmd/notify_slack@latest
 ```
 
-If you want to develop it, you can use the `make`. It requires Go 1.17 or higher.
+If you want to develop it, you can use the `make`.
 
 ```
 make
