@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml/v2"
 )
 
 var (
