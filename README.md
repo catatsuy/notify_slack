@@ -1,6 +1,6 @@
 # notify_slack
 
-Post to Slack from the command line. If you pass the standard output of the command to notify_slack by pipe, it will post to slack once a second (can be changed with the `-interval` option).
+The 'notify_slack' command allows you to post messages to Slack from the command line. Simply pipe the standard output of any command to 'notify_slack', and it will send the output to Slack at a rate of once per second (this interval can be modified using the `-interval` option).
 
 https://user-images.githubusercontent.com/1249910/155869750-48f7500f-4481-49b6-9d65-b93205f2b94f.mp4
 
@@ -8,47 +8,43 @@ https://user-images.githubusercontent.com/1249910/155869750-48f7500f-4481-49b6-9
 
 ## Installation
 
-I recommend you to use the binaries on [GitHub Releases](https://github.com/catatsuy/notify_slack/releases). Please download the latest version and use it.
+It is recommended that you use the binaries available on [GitHub Releases](https://github.com/catatsuy/notify_slack/releases). It is advisable to download and use the latest version.
 
-If you have a development environment for the Go language, you can compile and install it by yourself.
+If you have a Go language development environment set up, you can also compile and install the 'notify_slack' tools on your own.
 
 ```
 go install github.com/catatsuy/notify_slack/cmd/notify_slack@latest
 ```
 
-If you want to develop it, you can use the `make`.
+To build and modify the 'notify_slack' tools for development purposes, you can use the `make` command.
 
 ```
 make
 ```
 
-If you use `make`, the output of `notify_slack -version` is git commit ID.
+If you use the `make` command to build and install the 'notify_slack' tool, the output of the `notify_slack -version` command will be the git commit ID of the current version.
 
 ## usage
 
-`./bin/notify_slack` posts to Slack. You specify the setting in command line option or toml setting file.
-If both settings are specified, command line option will always take precedence.
+To post messages to Slack using the 'notify_slack' tool, you can either specify the necessary settings as command line options or in a TOML configuration file. If both options are provided, the command line settings will take precedence.
 
 ```sh
 ./bin/output | ./bin/notify_slack
 ```
 
-`./bin/output` is used for testing. While buffering, to post to slack.
+The 'output' tool is used for testing purposes and allows you to buffer and then post messages to Slack.
 
 ``` sh
 ./bin/notify_slack README.md
 ```
 
-You post the file as a snippet. `token` and `channel` is required to use the Slack Web API.
-
-If you want to upload to snippet via standard input, you must specify `-snippet`. If you specify `filename`, you can change the file name on Slack.
+To use the Slack Web API and post a file as a snippet, you will need to provide a `token` and `channel`. If you want to upload a snippet via standard input, you must specify the `-snippet` flag. You can also specify a `filename` to change the name of the file on Slack.
 
 ``` sh
 git diff | ./bin/notify_slack -snippet -filename git.diff
 ```
 
-Slack's API can specify `filetype`. You can also specify `-filetype`. But it is automatically determined from the extension of the file.
-You make sure to give the appropriate extension.
+The Slack API allows you to specify the filetype of a file when posting it as a snippet. You can also use the `-filetype` flag to specify the file type. If this flag is not provided, the file type will be automatically determined based on the file's extension. It is important to ensure that the extension of the file accurately reflects its type.
 
 [file type | Slack](https://api.slack.com/types/file#file_types)
 
@@ -82,14 +78,14 @@ You make sure to give the appropriate extension.
 
 ### toml configuration file
 
-By default check the following files.
+By default, check the following files in order.
 
 1. a file specified with `-c`
 1. `$HOME/.notify_slack.toml`
 1. `$HOME/etc/notify_slack.toml`
 1. `/etc/notify_slack.toml`
 
-The contents of the toml file are as follows.
+The toml file contains the following information.
 
 ```toml:notify_slack.toml
 [slack]
@@ -103,17 +99,17 @@ interval = "1s"
 
 Note:
 
-  * `url` is necessary if you want to post to slack as text.
-    * You can specify `channel`, `username`, `icon_emoji` and `interval`.
-    * Now, you cannot override `channel`, `username`, `icon_emoji` due to the specification change of Incoming Webhooks. Please refer to https://api.slack.com/messaging/webhooks#advanced_message_formatting
-    * Incoming Webhooks url can be created on https://slack.com/services/new/incoming-webhook
-  * `token` and `channel` is necessary if you want to post to snippet.
-    * `username` and `icon_emoji` are ignored in this case.
-    * Please see the next section for how to create token.
+  * You will need to specify a url if you want to post messages to Slack as text
+    * You can use the following options to customize your message when posting to Slack as text: `channel`, `username`, `icon_emoji`, and `interval`.
+    * Due to a recent change in the specification for Incoming Webhooks, it is currently not possible to override the `channel`, `username`, and `icon_emoji` options when posting to Slack. For more information, please refer to [this resource](https://api.slack.com/messaging/webhooks#advanced_message_formatting)
+    * You can create an Incoming Webhooks URL at https://slack.com/services/new/incoming-webhook
+  * To post a file as a snippet to Slack, you will need to provide both a `token` and a `channel`.
+    * The `username` and `icon_emoji` options will be ignored when posting a file as a snippet to Slack.
+    * For instructions on how to create a token, please see the next section.
 
 Tips:
 
-  * If you want to default to another channel only for snippet, you can use `snippet_channel`.
+  * If you want to use a different default channel for snippets, you can specify it using the `snippet_channel` option.
 
 ### How to create a token
 
@@ -121,7 +117,7 @@ You need to create a token if you use snippet uploading mode.
 
 #### Create New App
 
-At first, you need to create new app. Please access https://api.slack.com/apps.
+To create a new app and generate a token for use with the Slack API, go to https://api.slack.com/apps and follow these steps:
 
 1. click `Create New App` and click `From scratch`
 2. input application name to `App Name`
@@ -147,7 +143,7 @@ At first, you need to create new app. Please access https://api.slack.com/apps.
 
 ### (Advanced) Environment Variables
 
-Some settings can be given by the following environment variables.
+Some settings for the Slack API can be provided using environment variables.
 
 ```
 NOTIFY_SLACK_WEBHOOK_URL
@@ -159,4 +155,4 @@ NOTIFY_SLACK_ICON_EMOJI
 NOTIFY_SLACK_INTERVAL
 ```
 
-It will be useful if you want to use it on a container. If you use it, you don't need a configuration file anymore.
+Using environment variables to specify settings for the 'notify_slack' tool can be useful if you are deploying it in a containerized environment. It allows you to avoid the need for a configuration file and simplifies the process of managing and updating settings.
