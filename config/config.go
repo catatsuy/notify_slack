@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml/v2"
 )
 
 var (
@@ -65,61 +65,70 @@ func (c *Config) LoadEnv() error {
 	return nil
 }
 
+type slackConfig struct {
+	URL            string
+	Token          string
+	Channel        string
+	SnippetChannel string `toml:"snippet_channel"`
+	Username       string
+	IconEmoji      string `toml:"icon_emoji"`
+	Interval       string
+}
+
+type rootConfig struct {
+	Slack slackConfig
+}
+
 func (c *Config) LoadTOML(filename string) error {
-	b, err := os.ReadFile(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
 
-	config, err := toml.LoadBytes(b)
+	var cfg rootConfig
+
+	err = toml.NewDecoder(f).Decode(&cfg)
 	if err != nil {
 		return err
 	}
 
-	slackConfig := config.Get("slack").(*toml.Tree)
+	slackConfig := cfg.Slack
 
 	if c.SlackURL == "" {
-		slackURL, ok := slackConfig.Get("url").(string)
-		if ok {
-			c.SlackURL = slackURL
+		if slackConfig.URL != "" {
+			c.SlackURL = slackConfig.URL
 		}
 	}
 	if c.Token == "" {
-		token, ok := slackConfig.Get("token").(string)
-		if ok {
-			c.Token = token
+		if slackConfig.Token != "" {
+			c.Token = slackConfig.Token
 		}
 	}
 	if c.Channel == "" {
-		channel, ok := slackConfig.Get("channel").(string)
-		if ok {
-			c.Channel = channel
+		if slackConfig.Channel != "" {
+			c.Channel = slackConfig.Channel
 		}
 	}
 	if c.SnippetChannel == "" {
-		snippetChannel, ok := slackConfig.Get("snippet_channel").(string)
-		if ok {
-			c.SnippetChannel = snippetChannel
+		if slackConfig.SnippetChannel != "" {
+			c.SnippetChannel = slackConfig.SnippetChannel
 		}
 	}
 	if c.Username == "" {
-		username, ok := slackConfig.Get("username").(string)
-		if ok {
-			c.Username = username
+		if slackConfig.Username != "" {
+			c.Username = slackConfig.Username
 		}
 	}
 	if c.IconEmoji == "" {
-		iconEmoji, ok := slackConfig.Get("icon_emoji").(string)
-		if ok {
-			c.IconEmoji = iconEmoji
+		if slackConfig.IconEmoji != "" {
+			c.IconEmoji = slackConfig.IconEmoji
 		}
 	}
 
-	durationStr, ok := slackConfig.Get("interval").(string)
-	if ok {
-		duration, err := time.ParseDuration(durationStr)
+	if slackConfig.Interval != "" {
+		duration, err := time.ParseDuration(slackConfig.Interval)
 		if err != nil {
-			return fmt.Errorf("incorrect value to inteval option: %s: %w", durationStr, err)
+			return fmt.Errorf("incorrect value to interval option: %s: %w", slackConfig.Interval, err)
 		}
 		c.Duration = duration
 	}
