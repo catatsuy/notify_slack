@@ -20,7 +20,7 @@ func TestRun_pipeClose(t *testing.T) {
 	count := 0
 	fc := make(chan struct{})
 
-	flushCallback := func(s string) error {
+	flushCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			fc <- struct{}{}
 			// to random fail from Go 1.12 or later
@@ -36,7 +36,7 @@ func TestRun_pipeClose(t *testing.T) {
 
 	doneCount := 0
 
-	doneCallback := func(s string) error {
+	doneCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			// If goroutine is not used, tests cannot be run multiple times
 			go func() {
@@ -115,7 +115,7 @@ func TestRun_contextDone(t *testing.T) {
 	count := 0
 	fc := make(chan struct{})
 
-	flushCallback := func(s string) error {
+	flushCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			fc <- struct{}{}
 			// to random fail from Go 1.12 or later
@@ -131,7 +131,7 @@ func TestRun_contextDone(t *testing.T) {
 
 	doneCount := 0
 
-	doneCallback := func(s string) error {
+	doneCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			// If goroutine is not used, tests cannot be run multiple times
 			go func() {

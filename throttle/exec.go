@@ -51,7 +51,7 @@ func (ex *Exec) stringAndReset() string {
 	return ex.writer.String()
 }
 
-func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(output string) error, doneCallback func(output string) error) {
+func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallback func(ctx context.Context, output string) error, doneCallback func(ctx context.Context, output string) error) {
 	go func() {
 		for {
 			line, _, err := ex.reader.ReadLine()
@@ -79,12 +79,12 @@ L:
 	for {
 		select {
 		case <-interval:
-			flushCallback(ex.flush())
+			flushCallback(ctx, ex.flush())
 		case <-ctx.Done():
-			doneCallback(ex.flush())
+			doneCallback(ctx, ex.flush())
 			break L
 		case <-ex.Wait():
-			doneCallback(ex.flush())
+			doneCallback(ctx, ex.flush())
 			break L
 		}
 	}

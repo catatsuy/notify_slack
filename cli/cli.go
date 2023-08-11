@@ -174,14 +174,14 @@ func (c *CLI) Run(args []string) int {
 		IconEmoji: c.conf.IconEmoji,
 	}
 
-	flushCallback := func(output string) error {
+	flushCallback := func(ctx context.Context, output string) error {
 		param.Text = output
-		return c.sClient.PostText(context.Background(), param)
+		return c.sClient.PostText(context.WithoutCancel(ctx), param)
 	}
 
 	done := make(chan struct{})
 
-	doneCallback := func(output string) error {
+	doneCallback := func(ctx context.Context, output string) error {
 		defer func() {
 			// If goroutine is not used, it will not exit when the pipe is closed
 			go func() {
@@ -189,7 +189,7 @@ func (c *CLI) Run(args []string) int {
 			}()
 		}()
 
-		return flushCallback(output)
+		return flushCallback(context.WithoutCancel(ctx), output)
 	}
 
 	ticker := time.NewTicker(c.conf.Duration)
