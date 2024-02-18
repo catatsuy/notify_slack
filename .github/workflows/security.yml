@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   govulncheck_job:
@@ -16,5 +16,5 @@ jobs:
       - id: govulncheck
         uses: golang/govulncheck-action@v1
         with:
-           go-version-input: 1.22.0
-           go-package: ./...
+          go-version-input: 1.22.0
+          go-package: ./...
