@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -37,6 +40,36 @@ func TestRun_versionFlg(t *testing.T) {
 	}
 
 	expected := fmt.Sprintf("notify_slack version %s", Version)
+	if !strings.Contains(errStream.String(), expected) {
+		t.Errorf("Output=%q, want %q", errStream.String(), expected)
+	}
+}
+
+func TestRun_providedStdin(t *testing.T) {
+	errStream, inputStream := new(bytes.Buffer), new(bytes.Buffer)
+
+	// cf: https://cs.opensource.google/go/x/term/+/master:term_test.go
+	if runtime.GOOS != "linux" {
+		t.Skipf("unknown terminal path for GOOS %v", runtime.GOOS)
+	}
+	file, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+
+	var outStream io.Writer = file
+
+	cl := NewCLI(outStream, errStream, inputStream)
+
+	args := strings.Split("notify_slack", " ")
+	status := cl.Run(args)
+
+	if status != ExitCodeFail {
+		t.Errorf("ExitStatus=%d, want %d", status, ExitCodeOK)
+	}
+
+	expected := "No input file specified"
 	if !strings.Contains(errStream.String(), expected) {
 		t.Errorf("Output=%q, want %q", errStream.String(), expected)
 	}
