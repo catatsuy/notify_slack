@@ -15,6 +15,7 @@ import (
 	"github.com/catatsuy/notify_slack/config"
 	"github.com/catatsuy/notify_slack/slack"
 	"github.com/catatsuy/notify_slack/throttle"
+	"golang.org/x/term"
 )
 
 var (
@@ -106,6 +107,9 @@ func (c *CLI) Run(args []string) int {
 			fmt.Fprintln(c.errStream, "You cannot pass multiple files")
 			return ExitCodeParseFlagError
 		}
+	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+		fmt.Fprintln(c.errStream, "No input file specified")
+		return ExitCodeFail
 	}
 
 	tomlFile = config.LoadTOMLFilename(tomlFile)
