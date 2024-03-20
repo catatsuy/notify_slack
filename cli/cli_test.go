@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -37,6 +39,34 @@ func TestRun_versionFlg(t *testing.T) {
 	}
 
 	expected := fmt.Sprintf("notify_slack version %s", Version)
+	if !strings.Contains(errStream.String(), expected) {
+		t.Errorf("Output=%q, want %q", errStream.String(), expected)
+	}
+}
+
+func TestRun_providedStdin(t *testing.T) {
+	errStream, outStream := new(bytes.Buffer), new(bytes.Buffer)
+
+	file, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
+	if err != nil {
+		t.Fatalf("Failed to open /dev/tty: %v", err)
+	}
+	defer file.Close()
+
+	var inputStream io.Reader = file
+
+	cl := &CLI{
+		outStream:   outStream,
+		errStream:   errStream,
+		inputStream: inputStream,
+	}
+	status := cl.Run([]string{"notify_slack"})
+
+	if status != ExitCodeFail {
+		t.Errorf("ExitStatus=%d, want %d", status, ExitCodeFail)
+	}
+
+	expected := "No input file specified"
 	if !strings.Contains(errStream.String(), expected) {
 		t.Errorf("Output=%q, want %q", errStream.String(), expected)
 	}

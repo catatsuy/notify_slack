@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: test
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           make vet
           make test
