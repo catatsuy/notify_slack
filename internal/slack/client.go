@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
 var (
-	slackFilesUploadURL = "https://slack.com/api/files.upload"
+	filesGetUploadURLExternalURL   = "https://slack.com/api/files.getUploadURLExternal"
+	filesCompleteUploadExternalURL = "https://slack.com/api/files.completeUploadExternal"
 )
 
 type Client struct {
@@ -25,6 +27,19 @@ type Client struct {
 	Logger *log.Logger
 }
 
+type PostFileParam struct {
+	Channel  string
+	Content  string
+	Filename string
+	Filetype string
+}
+
+type GetUploadURLExternalRes struct {
+	OK        bool   `json:"ok"`
+	UploadURL string `json:"upload_url"`
+	FileID    string `json:"file_id"`
+}
+
 type PostTextParam struct {
 	Channel   string `json:"channel,omitempty"`
 	Username  string `json:"username,omitempty"`
@@ -32,11 +47,10 @@ type PostTextParam struct {
 	IconEmoji string `json:"icon_emoji,omitempty"`
 }
 
-type PostFileParam struct {
-	Channel  string
-	Content  string
-	Filename string
-	Filetype string
+type GetUploadURLExternalResParam struct {
+	Filename    string
+	SnippetType string
+	Length      int
 }
 
 type Slack interface {
@@ -68,7 +82,7 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	return client, nil
 }
 
-func NewClientForPostFile(logger *log.Logger) (*Client, error) {
+func NewClientForFile(logger *log.Logger) (*Client, error) {
 	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
 	if logger == nil {
 		logger = discardLogger
@@ -126,30 +140,24 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-type apiFilesUploadRes struct {
-	OK bool `json:"ok"`
+func NewClientForPostFile(logger *log.Logger) (*Client, error) {
+	return nil, nil
 }
 
-func (c *Client) PostFile(ctx context.Context, token string, param *PostFileParam) error {
+func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, param *GetUploadURLExternalResParam) error {
 	if len(token) == 0 {
 		return fmt.Errorf("provide Slack token")
 	}
 
-	if param.Content == "" {
-		return fmt.Errorf("the content of the file is empty")
-	}
-
 	v := url.Values{}
-	v.Set("token", token)
-	v.Set("content", param.Content)
 	v.Set("filename", param.Filename)
-	v.Set("channels", param.Channel)
+	v.Set("length", strconv.Itoa(param.Length))
 
-	if param.Filetype != "" {
-		v.Set("filetype", param.Filetype)
+	if param.SnippetType != "" {
+		v.Set("snippet_type", param.SnippetType)
 	}
 
-	req, err := http.NewRequest("POST", slackFilesUploadURL, strings.NewReader(v.Encode()))
+	req, err := http.NewRequest(http.MethodPost, filesGetUploadURLExternalURL, strings.NewReader(v.Encode()))
 	if err != nil {
 		return err
 	}
@@ -157,6 +165,7 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 	req = req.WithContext(ctx)
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -166,21 +175,18 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read res.Body: %w", err)
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200; body: %s", b)
+		return fmt.Errorf("failed to read res.Body and the status code: %d; body: %s", res.StatusCode, b)
 	}
 
-	apiRes := apiFilesUploadRes{}
+	apiRes := GetUploadURLExternalRes{}
 	err = json.Unmarshal(b, &apiRes)
 	if err != nil {
-		return fmt.Errorf("response returned from slack is not json: %w", err)
+		return fmt.Errorf("response returned from slack is not json: body: %s: %w", b, err)
 	}
 
-	if !apiRes.OK {
-		return fmt.Errorf("response has failed; body: %s", b)
-	}
 	return nil
 }

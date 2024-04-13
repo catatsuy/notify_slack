@@ -1,9 +1,9 @@
 package slack
 
-func SetSlackFilesUploadURL(u string) (resetFunc func()) {
+func SetFilesGetUploadURLExternalURL(u string) (resetFunc func()) {
 	var tmp string
-	tmp, slackFilesUploadURL = slackFilesUploadURL, u
+	tmp, filesGetUploadURLExternalURL = filesGetUploadURLExternalURL, u
 	return func() {
-		slackFilesUploadURL = tmp
+		filesGetUploadURLExternalURL = tmp
 	}
 }

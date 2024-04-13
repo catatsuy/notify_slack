@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
 	. "github.com/catatsuy/notify_slack/internal/slack"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestNewClient_badURL(t *testing.T) {
@@ -105,8 +108,13 @@ func TestPostText_Fail(t *testing.T) {
 	}
 
 	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		b, err := os.ReadFile("testdata/post_text_fail.html")
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		w.WriteHeader(http.StatusNotFound)
-		http.ServeFile(w, r, "testdata/post_text_fail.html")
+		w.Write(b)
 	})
 
 	c, err := NewClient(testAPIServer.URL, nil)
@@ -133,17 +141,22 @@ func TestPostFile_Success(t *testing.T) {
 
 	slackToken := "slack-token"
 
-	param := &PostFileParam{
-		Channel:  "test-channel",
-		Content:  "testtesttest",
+	param := &GetUploadURLExternalResParam{
 		Filename: "test.txt",
+		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
 			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		authorization := r.Header.Get("Authorization")
+		expectedAuth := "Bearer " + slackToken
+		if authorization != expectedAuth {
+			t.Fatalf("Authorization expected %s, but %s", expectedAuth, authorization)
 		}
 
 		bodyBytes, err := io.ReadAll(r.Body)
@@ -158,51 +171,53 @@ func TestPostFile_Success(t *testing.T) {
 		}
 
 		expectedV := url.Values{}
-		expectedV.Set("token", slackToken)
-		expectedV.Set("content", param.Content)
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("channels", param.Channel)
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
-		if !reflect.DeepEqual(actualV, expectedV) {
-			t.Fatalf("expected %q to equal %q", actualV, expectedV)
+		if diff := cmp.Diff(expectedV, actualV); diff != "" {
+			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
 		}
 
-		http.ServeFile(w, r, "testdata/post_files_upload_ok.json")
+		http.ServeFile(w, r, "testdata/files_get_upload_url_external_ok.json")
 	})
 
-	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), slackToken, param)
+	err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestPostFile_Success_provideFiletype(t *testing.T) {
+func TestPostFile_FailAPI(t *testing.T) {
 	muxAPI := http.NewServeMux()
 	testAPIServer := httptest.NewServer(muxAPI)
 	defer testAPIServer.Close()
 
 	slackToken := "slack-token"
 
-	param := &PostFileParam{
-		Channel:  "test-channel",
-		Content:  "testtesttest",
+	param := &GetUploadURLExternalResParam{
 		Filename: "test.txt",
-		Filetype: "diff",
+		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
 			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		authorization := r.Header.Get("Authorization")
+		expectedAuth := "Bearer " + slackToken
+		if authorization != expectedAuth {
+			t.Fatalf("Authorization expected %s, but %s", expectedAuth, authorization)
 		}
 
 		bodyBytes, err := io.ReadAll(r.Body)
@@ -217,138 +232,120 @@ func TestPostFile_Success_provideFiletype(t *testing.T) {
 		}
 
 		expectedV := url.Values{}
-		expectedV.Set("token", slackToken)
-		expectedV.Set("content", param.Content)
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("filetype", param.Filetype)
-		expectedV.Set("channels", param.Channel)
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
-		if !reflect.DeepEqual(actualV, expectedV) {
-			t.Fatalf("expected %q to equal %q", actualV, expectedV)
+		if diff := cmp.Diff(expectedV, actualV); diff != "" {
+			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
 		}
 
-		http.ServeFile(w, r, "testdata/post_files_upload_ok.json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Header().Set("Content-Type", "application/json")
+
+		b, err := os.ReadFile("testdata/files_get_upload_url_external_fail.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.Write(b)
 	})
 
-	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), slackToken, param)
+	err = c.GetUploadURLExternalURL(context.Background(), "", param)
+	expectedErrorPart := "provide Slack token"
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	} else if !strings.Contains(err.Error(), expectedErrorPart) {
+		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
+	}
 
-	if err != nil {
-		t.Fatal(err)
+	err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
+
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	} else {
+		expected := "status code: 403"
+		if !strings.Contains(err.Error(), expected) {
+			t.Errorf("expected %q to contain %q", err.Error(), expected)
+		}
+
+		expectedBodyPart := `"invalid_auth"`
+		if !strings.Contains(err.Error(), expectedBodyPart) {
+			t.Errorf("expected %q to contain %q", err.Error(), expectedBodyPart)
+		}
 	}
 }
 
-func TestPostFile_FailNotOk(t *testing.T) {
+func TestPostFile_FailBrokenJSON(t *testing.T) {
 	muxAPI := http.NewServeMux()
 	testAPIServer := httptest.NewServer(muxAPI)
 	defer testAPIServer.Close()
 
 	slackToken := "slack-token"
 
-	param := &PostFileParam{
-		Channel:  "test-channel",
-		Content:  "testtesttest",
+	param := &GetUploadURLExternalResParam{
 		Filename: "test.txt",
+		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "testdata/post_files_upload_fail.json")
+	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get("Content-Type")
+		expectedType := "application/x-www-form-urlencoded"
+		if contentType != expectedType {
+			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		authorization := r.Header.Get("Authorization")
+		expectedAuth := "Bearer " + slackToken
+		if authorization != expectedAuth {
+			t.Fatalf("Authorization expected %s, but %s", expectedAuth, authorization)
+		}
+
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer r.Body.Close()
+
+		actualV, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expectedV := url.Values{}
+		expectedV.Set("filename", param.Filename)
+		expectedV.Set("length", strconv.Itoa(param.Length))
+
+		if diff := cmp.Diff(expectedV, actualV); diff != "" {
+			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
+		}
+
+		w.Header().Set("Content-Type", "text/plain")
+
+		w.Write([]byte("this is not json"))
 	})
 
-	defer SetSlackFilesUploadURL(testAPIServer.URL)()
+	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForFile(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.PostFile(context.Background(), slackToken, param)
+	err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := `response has failed; body: {"ok":false,"error":"invalid_auth"}`
-	if !strings.Contains(err.Error(), expected) {
-		t.Fatalf("expected %q to contain %q", err.Error(), expected)
-	}
-}
-
-func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
-	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
-
-	slackToken := "slack-token"
-
-	param := &PostFileParam{
-		Channel:  "test-channel",
-		Content:  "testtesttest",
-		Filename: "test.txt",
-	}
-
-	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		http.ServeFile(w, r, "testdata/post_files_upload_fail.json")
-	})
-
-	defer SetSlackFilesUploadURL(testAPIServer.URL)()
-
-	c, err := NewClientForPostFile(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.PostFile(context.Background(), slackToken, param)
-
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := `failed to read res.Body and the status code of the response from slack was not 200; body: {"ok":false,"error":"invalid_auth"}`
-	if !strings.Contains(err.Error(), expected) {
-		t.Fatalf("expected %q to contain %q", err.Error(), expected)
-	}
-}
-
-func TestPostFile_FailNotJSON(t *testing.T) {
-	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
-
-	slackToken := "slack-token"
-
-	param := &PostFileParam{
-		Channel:  "test-channel",
-		Content:  "testtesttest",
-		Filename: "test.txt",
-	}
-
-	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "testdata/post_text_fail.html")
-	})
-
-	defer SetSlackFilesUploadURL(testAPIServer.URL)()
-
-	c, err := NewClientForPostFile(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.PostFile(context.Background(), slackToken, param)
-
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := `response returned from slack is not json`
-	if !strings.Contains(err.Error(), expected) {
-		t.Fatalf("expected %q to contain %q", err.Error(), expected)
+	} else {
+		expectedBodyPart := `this is not json`
+		if !strings.Contains(err.Error(), expectedBodyPart) {
+			t.Errorf("expected %q to contain %q", err.Error(), expectedBodyPart)
+		}
 	}
 }
