@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/catatsuy/notify_slack/config"
+	. "github.com/catatsuy/notify_slack/internal/config"
 )
 
 func TestLoadTOML(t *testing.T) {

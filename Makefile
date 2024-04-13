@@ -4,8 +4,8 @@ all: bin/notify_slack bin/output
 go.mod go.sum:
 	go mod tidy
 
-bin/notify_slack: cmd/notify_slack/main.go slack/*.go throttle/*.go config/*.go cli/*.go go.mod go.sum
-	go build -ldflags "-X github.com/catatsuy/notify_slack/cli.Version=`git rev-list HEAD -n1`" -o bin/notify_slack cmd/notify_slack/main.go
+bin/notify_slack: cmd/notify_slack/main.go internal/slack/*.go internal/throttle/*.go internal/config/*.go internal/cli/*.go go.mod go.sum
+	go build -ldflags "-X github.com/catatsuy/notify_slack/internal/cli.Version=`git rev-list HEAD -n1`" -o bin/notify_slack cmd/notify_slack/main.go
 
 bin/output: cmd/output/main.go
 	go build -o bin/output cmd/output/main.go

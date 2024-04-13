@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/catatsuy/notify_slack/config"
-	"github.com/catatsuy/notify_slack/slack"
-	"github.com/catatsuy/notify_slack/throttle"
+	"github.com/catatsuy/notify_slack/internal/config"
+	"github.com/catatsuy/notify_slack/internal/slack"
+	"github.com/catatsuy/notify_slack/internal/throttle"
 	"golang.org/x/term"
 )
 

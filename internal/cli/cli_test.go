@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/catatsuy/notify_slack/config"
-	"github.com/catatsuy/notify_slack/slack"
+	"github.com/catatsuy/notify_slack/internal/config"
+	"github.com/catatsuy/notify_slack/internal/slack"
 )
 
 type fakeSlackClient struct {

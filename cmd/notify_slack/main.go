@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/catatsuy/notify_slack/cli"
+	"github.com/catatsuy/notify_slack/internal/cli"
 )
 
 func main() {
