@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/catatsuy/notify_slack/slack"
+	. "github.com/catatsuy/notify_slack/internal/slack"
 )
 
 func TestNewClient_badURL(t *testing.T) {
