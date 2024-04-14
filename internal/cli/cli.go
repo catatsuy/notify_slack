@@ -129,7 +129,7 @@ func (c *CLI) Run(args []string) int {
 	}
 
 	if filename != "" || snippetMode {
-		c.sClient, err = slack.NewClientForPostFile(nil)
+		c.sClient, err = slack.NewClientForFile(nil)
 		if err != nil {
 			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail

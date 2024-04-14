@@ -149,6 +149,14 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 		return fmt.Errorf("provide Slack token")
 	}
 
+	if param.Filename == "" {
+		return fmt.Errorf("provide filename")
+	}
+
+	if param.Length == 0 {
+		return fmt.Errorf("provide length")
+	}
+
 	v := url.Values{}
 	v.Set("filename", param.Filename)
 	v.Set("length", strconv.Itoa(param.Length))
@@ -186,6 +194,10 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 	err = json.Unmarshal(b, &apiRes)
 	if err != nil {
 		return fmt.Errorf("response returned from slack is not json: body: %s: %w", b, err)
+	}
+
+	if !apiRes.OK {
+		return fmt.Errorf("response has failed; body: %s", b)
 	}
 
 	return nil
