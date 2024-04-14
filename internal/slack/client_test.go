@@ -557,3 +557,57 @@ func TestUploadToURL_fail(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expected)
 	}
 }
+
+func TestCompleteUploadExternal_Success(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	slackToken := "slack-token"
+
+	muxAPI.HandleFunc("/api/files.completeUploadExternal", func(w http.ResponseWriter, r *http.Request) {
+		contentType := r.Header.Get("Content-Type")
+		expectedType := "application/x-www-form-urlencoded"
+		if contentType != expectedType {
+			t.Fatalf("Content-Type expected %s, but %s", expectedType, contentType)
+		}
+
+		authorization := r.Header.Get("Authorization")
+		expectedAuth := "Bearer " + slackToken
+		if authorization != expectedAuth {
+			t.Fatalf("Authorization expected %s, but %s", expectedAuth, authorization)
+		}
+
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer r.Body.Close()
+
+		actualV, err := url.ParseQuery(string(bodyBytes))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expectedV := url.Values{}
+		expectedV.Set("files", `[{"id":"file-id","title":"file-title"}]`)
+
+		if diff := cmp.Diff(expectedV, actualV); diff != "" {
+			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
+		}
+
+		http.ServeFile(w, r, "testdata/files_complete_upload_external_ok.json")
+	})
+
+	defer SetFilesCompleteUploadExternalURL(testAPIServer.URL + "/api/files.completeUploadExternal")()
+
+	c, err := NewClientForFile(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.CompleteUploadExternal(context.Background(), slackToken, "file-id", "file-title")
+	if err != nil {
+		t.Fatal(err)
+	}
+}

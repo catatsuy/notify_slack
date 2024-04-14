@@ -261,3 +261,68 @@ func (c *Client) UploadToURL(ctx context.Context, fileName, uploadURL string) er
 
 	return nil
 }
+
+type FileSummary struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+type CompleteUploadExternalRes struct {
+	OK    bool `json:"ok"`
+	Files []struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	} `json:"files"`
+}
+
+func (c *Client) CompleteUploadExternal(ctx context.Context, token, fileID, title string) error {
+	if len(token) == 0 {
+		return fmt.Errorf("provide Slack token")
+	}
+
+	request := []FileSummary{{ID: fileID, Title: title}}
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	v := url.Values{}
+	v.Set("files", string(requestBytes))
+
+	req, err := http.NewRequest(http.MethodPost, filesCompleteUploadExternalURL, strings.NewReader(v.Encode()))
+	if err != nil {
+		return err
+	}
+
+	req = req.WithContext(ctx)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read res.Body: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to read res.Body and the status code: %d; body: %s", res.StatusCode, b)
+	}
+
+	apiRes := CompleteUploadExternalRes{}
+	err = json.Unmarshal(b, &apiRes)
+	if err != nil {
+		return fmt.Errorf("response returned from slack is not json: body: %s: %w", b, err)
+	}
+
+	if !apiRes.OK {
+		return fmt.Errorf("response has failed; body: %s", b)
+	}
+
+	return nil
+}
