@@ -26,6 +26,11 @@ errcheck:
 staticcheck:
 	staticcheck -checks="all,-ST1000" ./...
 
+.PHONY: cover
+cover:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out
+
 .PHONY: clean
 clean:
 	rm -rf bin/*
