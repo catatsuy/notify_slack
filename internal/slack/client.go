@@ -144,21 +144,21 @@ func NewClientForPostFile(logger *log.Logger) (*Client, error) {
 	return nil, nil
 }
 
-func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, param *GetUploadURLExternalResParam) error {
+func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, param *GetUploadURLExternalResParam) (uploadURL string, fileID string, err error) {
 	if len(token) == 0 {
-		return fmt.Errorf("provide Slack token")
+		return "", "", fmt.Errorf("provide Slack token")
 	}
 
 	if param == nil {
-		return fmt.Errorf("provide filename and length")
+		return "", "", fmt.Errorf("provide filename and length")
 	}
 
 	if param.Filename == "" {
-		return fmt.Errorf("provide filename")
+		return "", "", fmt.Errorf("provide filename")
 	}
 
 	if param.Length == 0 {
-		return fmt.Errorf("provide length")
+		return "", "", fmt.Errorf("provide length")
 	}
 
 	v := url.Values{}
@@ -171,7 +171,7 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 
 	req, err := http.NewRequest(http.MethodPost, filesGetUploadURLExternalURL, strings.NewReader(v.Encode()))
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	req = req.WithContext(ctx)
@@ -181,28 +181,28 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 	defer res.Body.Close()
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read res.Body: %w", err)
+		return "", "", fmt.Errorf("failed to read res.Body: %w", err)
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to read res.Body and the status code: %d; body: %s", res.StatusCode, b)
+		return "", "", fmt.Errorf("failed to read res.Body and the status code: %d; body: %s", res.StatusCode, b)
 	}
 
 	apiRes := GetUploadURLExternalRes{}
 	err = json.Unmarshal(b, &apiRes)
 	if err != nil {
-		return fmt.Errorf("response returned from slack is not json: body: %s: %w", b, err)
+		return "", "", fmt.Errorf("response returned from slack is not json: body: %s: %w", b, err)
 	}
 
 	if !apiRes.OK {
-		return fmt.Errorf("response has failed; body: %s", b)
+		return "", "", fmt.Errorf("response has failed; body: %s", b)
 	}
 
-	return nil
+	return apiRes.UploadURL, apiRes.FileID, nil
 }
