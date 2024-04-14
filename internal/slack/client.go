@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -205,4 +207,57 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 	}
 
 	return apiRes.UploadURL, apiRes.FileID, nil
+}
+
+func (c *Client) UploadToURL(ctx context.Context, fileName, uploadURL string) error {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", fileName)
+	if err != nil {
+		return fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return fmt.Errorf("failed to copy file: %w", err)
+	}
+
+	contentType := writer.FormDataContentType()
+
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close writer: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, uploadURL, body)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req = req.WithContext(ctx)
+
+	req.Header.Set("Content-Type", contentType)
+
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to do request: %w", err)
+	}
+	defer res.Body.Close()
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read res.Body: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to read res.Body and the status code: %d; body: %s", res.StatusCode, b)
+	}
+
+	return nil
 }

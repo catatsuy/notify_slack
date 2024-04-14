@@ -484,3 +484,76 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestUploadToURL_success(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+			t.Errorf("Expected multipart/form-data content type, got '%s'", r.Header.Get("Content-Type"))
+		}
+
+		err := r.ParseMultipartForm(32 << 10) // 32 KB
+		if err != nil {
+			t.Errorf("Error parsing multipart form: %v", err)
+		}
+
+		f, fh, err := r.FormFile("file")
+		if err != nil {
+			t.Errorf("Error retrieving file from form: %v", err)
+		}
+
+		if fh.Filename != "upload.txt" {
+			t.Errorf("Expected filename 'testdata/upload_to_url_ok.txt', got '%s'", fh.Filename)
+		}
+
+		b, err := io.ReadAll(f)
+		if err != nil {
+			t.Errorf("Error reading file: %v", err)
+		}
+
+		expectedBody := []byte("this is test.\n")
+		if !reflect.DeepEqual(b, expectedBody) {
+			t.Errorf("expected %q to equal %q", b, expectedBody)
+		}
+
+		http.ServeFile(w, r, "testdata/upload_to_url_ok.txt")
+	})
+
+	c, err := NewClient(testAPIServer.URL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUploadToURL_fail(t *testing.T) {
+	muxAPI := http.NewServeMux()
+	testAPIServer := httptest.NewServer(muxAPI)
+	defer testAPIServer.Close()
+
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	})
+
+	c, err := NewClient(testAPIServer.URL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL)
+	if err == nil {
+		t.Fatal("expected error, but nothing was returned")
+	}
+
+	expected := "status code: 400"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected %q to contain %q", err.Error(), expected)
+	}
+}
