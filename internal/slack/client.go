@@ -149,6 +149,10 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 		return fmt.Errorf("provide Slack token")
 	}
 
+	if param == nil {
+		return fmt.Errorf("provide filename and length")
+	}
+
 	if param.Filename == "" {
 		return fmt.Errorf("provide filename")
 	}
