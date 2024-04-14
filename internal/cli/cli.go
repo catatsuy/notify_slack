@@ -129,14 +129,14 @@ func (c *CLI) Run(args []string) int {
 	}
 
 	if filename != "" || snippetMode {
-		c.sClient, err = slack.NewClientForFile(nil)
-		if err != nil {
-			fmt.Fprintln(c.errStream, err)
+		if c.conf.Token == "" {
+			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
 			return ExitCodeFail
 		}
 
-		if c.conf.Token == "" {
-			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
+		c.sClient, err = slack.NewClientForFile(c.conf.Token)
+		if err != nil {
+			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail
 		}
 
@@ -233,7 +233,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 	defer reader.Close()
 
-	content, err := io.ReadAll(reader)
+	_, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
@@ -242,13 +242,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 		uploadFilename = filename
 	}
 
-	param := &slack.PostFileParam{
-		Channel:  channel,
-		Filename: uploadFilename,
-		Content:  string(content),
-		Filetype: filetype,
-	}
-	err = c.sClient.PostFile(ctx, c.conf.Token, param)
+	err = c.sClient.PostFile(ctx, uploadFilename)
 	if err != nil {
 		return err
 	}

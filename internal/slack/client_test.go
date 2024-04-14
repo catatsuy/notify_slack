@@ -172,7 +172,7 @@ func TestPostFile_Success(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.Itoa(param.Length))
+		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -183,12 +183,12 @@ func TestPostFile_Success(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(nil)
+	c, err := NewClientForFile(slackToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	uploadURL, fileID, err := c.GetUploadURLExternalURL(context.Background(), slackToken, param)
+	uploadURL, fileID, err := c.GetUploadURLExternalURL(context.Background(), param)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,23 +211,13 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 
 	slackToken := "slack-token"
 
-	param := &GetUploadURLExternalResParam{
-		Filename: "test.txt",
-		Length:   100,
-	}
-
 	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
 		panic("unexpected call")
 	})
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), "", param)
+	_, err := NewClientForFile("")
 	expectedErrorPart := "provide Slack token"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -235,7 +225,12 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, nil)
+	c, err := NewClientForFile(slackToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), nil)
 	expectedErrorPart = "provide filename and length"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -243,7 +238,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, &GetUploadURLExternalResParam{})
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), &GetUploadURLExternalResParam{})
 	expectedErrorPart = "provide filename"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -251,7 +246,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, &GetUploadURLExternalResParam{Filename: "test.txt"})
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), &GetUploadURLExternalResParam{Filename: "test.txt"})
 	expectedErrorPart = "provide length"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -298,7 +293,7 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.Itoa(param.Length))
+		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -317,12 +312,12 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(nil)
+	c, err := NewClientForFile(slackToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -377,7 +372,7 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.Itoa(param.Length))
+		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -395,12 +390,12 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(nil)
+	c, err := NewClientForFile(slackToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -455,7 +450,7 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.Itoa(param.Length))
+		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -468,12 +463,12 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(nil)
+	c, err := NewClientForFile(slackToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), slackToken, param)
+	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -522,12 +517,17 @@ func TestUploadToURL_success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/upload_to_url_ok.txt")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClientForFile("abcd")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL)
+	f, err := os.Open("testdata/upload.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL, f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -542,12 +542,17 @@ func TestUploadToURL_fail(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClientForFile("abcd")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL)
+	f, err := os.Open("testdata/upload.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.UploadToURL(context.Background(), "upload.txt", testAPIServer.URL, f)
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -601,12 +606,12 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 
 	defer SetFilesCompleteUploadExternalURL(testAPIServer.URL + "/api/files.completeUploadExternal")()
 
-	c, err := NewClientForFile(nil)
+	c, err := NewClientForFile(slackToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.CompleteUploadExternal(context.Background(), slackToken, "file-id", "file-title")
+	err = c.CompleteUploadExternal(context.Background(), "file-id", "file-title")
 	if err != nil {
 		t.Fatal(err)
 	}

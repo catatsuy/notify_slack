@@ -26,6 +26,8 @@ type Client struct {
 	URL        *url.URL
 	HTTPClient *http.Client
 
+	Token string
+
 	Logger *log.Logger
 }
 
@@ -52,12 +54,12 @@ type PostTextParam struct {
 type GetUploadURLExternalResParam struct {
 	Filename    string
 	SnippetType string
-	Length      int
+	Length      int64
 }
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, token string, param *PostFileParam) error
+	PostFile(ctx context.Context, filename string) error
 }
 
 func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
@@ -84,15 +86,14 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	return client, nil
 }
 
-func NewClientForFile(logger *log.Logger) (*Client, error) {
-	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
-	if logger == nil {
-		logger = discardLogger
+func NewClientForFile(token string) (*Client, error) {
+	if len(token) == 0 {
+		return nil, fmt.Errorf("provide Slack token")
 	}
 
 	client := &Client{
 		HTTPClient: http.DefaultClient,
-		Logger:     logger,
+		Token:      token,
 	}
 
 	return client, nil
@@ -142,15 +143,42 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-func NewClientForPostFile(logger *log.Logger) (*Client, error) {
-	return nil, nil
-}
+func (c *Client) PostFile(ctx context.Context, filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
 
-func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, param *GetUploadURLExternalResParam) (uploadURL string, fileID string, err error) {
-	if len(token) == 0 {
-		return "", "", fmt.Errorf("provide Slack token")
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
 	}
 
+	param := &GetUploadURLExternalResParam{
+		Filename: filename,
+		Length:   fileInfo.Size(),
+	}
+
+	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, param)
+	if err != nil {
+		return fmt.Errorf("failed to get upload url: %w", err)
+	}
+
+	err = c.UploadToURL(ctx, filename, uploadURL, file)
+	if err != nil {
+		return fmt.Errorf("failed to upload file: %w", err)
+	}
+
+	err = c.CompleteUploadExternal(ctx, fileID, filename)
+	if err != nil {
+		return fmt.Errorf("failed to complete upload: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Client) GetUploadURLExternalURL(ctx context.Context, param *GetUploadURLExternalResParam) (uploadURL string, fileID string, err error) {
 	if param == nil {
 		return "", "", fmt.Errorf("provide filename and length")
 	}
@@ -165,7 +193,7 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 
 	v := url.Values{}
 	v.Set("filename", param.Filename)
-	v.Set("length", strconv.Itoa(param.Length))
+	v.Set("length", strconv.FormatInt(param.Length, 10))
 
 	if param.SnippetType != "" {
 		v.Set("snippet_type", param.SnippetType)
@@ -179,7 +207,7 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 	req = req.WithContext(ctx)
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -209,21 +237,15 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, token string, para
 	return apiRes.UploadURL, apiRes.FileID, nil
 }
 
-func (c *Client) UploadToURL(ctx context.Context, fileName, uploadURL string) error {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
+func (c *Client) UploadToURL(ctx context.Context, filename, uploadURL string, f *os.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("file", fileName)
+	part, err := writer.CreateFormFile("file", filename)
 	if err != nil {
 		return fmt.Errorf("failed to create form file: %w", err)
 	}
 
-	_, err = io.Copy(part, file)
+	_, err = io.Copy(part, f)
 	if err != nil {
 		return fmt.Errorf("failed to copy file: %w", err)
 	}
@@ -275,11 +297,7 @@ type CompleteUploadExternalRes struct {
 	} `json:"files"`
 }
 
-func (c *Client) CompleteUploadExternal(ctx context.Context, token, fileID, title string) error {
-	if len(token) == 0 {
-		return fmt.Errorf("provide Slack token")
-	}
-
+func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title string) error {
 	request := []FileSummary{{ID: fileID, Title: title}}
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
@@ -288,6 +306,7 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, token, fileID, titl
 
 	v := url.Values{}
 	v.Set("files", string(requestBytes))
+	// v.Set("channel_id", "")
 
 	req, err := http.NewRequest(http.MethodPost, filesCompleteUploadExternalURL, strings.NewReader(v.Encode()))
 	if err != nil {
@@ -297,7 +316,7 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, token, fileID, titl
 	req = req.WithContext(ctx)
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
