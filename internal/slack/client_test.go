@@ -597,6 +597,7 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("files", `[{"id":"file-id","title":"file-title"}]`)
+		expectedV.Set("channel_id", "C0NF841BK")
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -612,7 +613,7 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.CompleteUploadExternal(context.Background(), "file-id", "file-title")
+	err = c.CompleteUploadExternal(context.Background(), "file-id", "file-title", "C0NF841BK")
 	if err != nil {
 		t.Fatal(err)
 	}

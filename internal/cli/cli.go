@@ -253,7 +253,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 		uploadFilename = filename
 	}
 
-	err = c.sClient.PostFile(ctx, uploadFilename, content)
+	err = c.sClient.PostFile(ctx, uploadFilename, channel, content)
 	if err != nil {
 		return err
 	}

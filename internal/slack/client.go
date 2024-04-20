@@ -58,7 +58,7 @@ type GetUploadURLExternalResParam struct {
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, filename string, content []byte) error
+	PostFile(ctx context.Context, filename, channelID string, content []byte) error
 }
 
 func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
@@ -143,7 +143,7 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-func (c *Client) PostFile(ctx context.Context, filename string, content []byte) error {
+func (c *Client) PostFile(ctx context.Context, filename, channelID string, content []byte) error {
 	param := &GetUploadURLExternalResParam{
 		Filename: filename,
 		Length:   len(content),
@@ -159,7 +159,7 @@ func (c *Client) PostFile(ctx context.Context, filename string, content []byte) 
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	err = c.CompleteUploadExternal(ctx, fileID, filename)
+	err = c.CompleteUploadExternal(ctx, fileID, filename, channelID)
 	if err != nil {
 		return fmt.Errorf("failed to complete upload: %w", err)
 	}
@@ -286,7 +286,7 @@ type CompleteUploadExternalRes struct {
 	} `json:"files"`
 }
 
-func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title string) error {
+func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title, channelID string) error {
 	request := []FileSummary{{ID: fileID, Title: title}}
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
@@ -295,7 +295,9 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title strin
 
 	v := url.Values{}
 	v.Set("files", string(requestBytes))
-	// v.Set("channel_id", "")
+	if channelID != "" {
+		v.Set("channel_id", channelID)
+	}
 
 	req, err := http.NewRequest(http.MethodPost, filesCompleteUploadExternalURL, strings.NewReader(v.Encode()))
 	if err != nil {

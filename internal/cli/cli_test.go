@@ -15,11 +15,11 @@ import (
 type fakeSlackClient struct {
 	slack.Slack
 
-	FakePostFile func(ctx context.Context, filename string, content []byte) error
+	FakePostFile func(ctx context.Context, filename, channelID string, content []byte) error
 }
 
-func (c *fakeSlackClient) PostFile(ctx context.Context, filename string, content []byte) error {
-	return c.FakePostFile(ctx, filename, content)
+func (c *fakeSlackClient) PostFile(ctx context.Context, filename, channelID string, content []byte) error {
+	return c.FakePostFile(ctx, filename, channelID, content)
 }
 
 func (c *fakeSlackClient) PostText(ctx context.Context, param *slack.PostTextParam) error {
@@ -63,7 +63,7 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename string, content []byte) error {
+		FakePostFile: func(ctx context.Context, filename, channelID string, content []byte) error {
 			expectedFilename := "testdata/upload.txt"
 			if filename != expectedFilename {
 				t.Errorf("expected %s; got %s", expectedFilename, filename)
@@ -84,16 +84,16 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename string, content []byte) error {
+		FakePostFile: func(ctx context.Context, filename, channelID string, content []byte) error {
 			expectedFilename := "overwrite.txt"
 			if filename != expectedFilename {
 				t.Errorf("expected %s; got %s", expectedFilename, filename)
 			}
 
-			// expectedContent := "upload_test\n"
-			// if param.Content != expectedContent {
-			// 	t.Errorf("expected %q; got %q", expectedContent, param.Content)
-			// }
+			expectedContent := "upload_test\n"
+			if diff := cmp.Diff(expectedContent, string(content)); diff != "" {
+				t.Errorf("unexpected diff: (-want +got):\n%s", diff)
+			}
 
 			return nil
 		},
@@ -105,7 +105,7 @@ func TestUploadSnippet(t *testing.T) {
 	// }
 
 	// cl.sClient = &fakeSlackClient{
-	// 	FakePostFile: func(ctx context.Context, token string, param *slack.PostFileParam) error {
+	// 	FakePostFile: func(ctx context.Context, token string, content []byte) error {
 	// 		if param.Channel != cl.conf.Channel {
 	// 			t.Errorf("expected %s; got %s", cl.conf.Channel, param.Channel)
 	// 		}
