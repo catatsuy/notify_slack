@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,7 +22,7 @@ type Client struct {
 	URL        *url.URL
 	HTTPClient *http.Client
 
-	Logger *log.Logger
+	Logger *slog.Logger
 }
 
 type PostTextParam struct {
@@ -44,7 +44,7 @@ type Slack interface {
 	PostFile(ctx context.Context, token string, param *PostFileParam) error
 }
 
-func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
+func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
 	if len(urlStr) == 0 {
 		return nil, fmt.Errorf("client: missing url")
 	}
@@ -52,11 +52,6 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	parsedURL, err := url.ParseRequestURI(urlStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse url: %s: %w", urlStr, err)
-	}
-
-	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
-	if logger == nil {
-		logger = discardLogger
 	}
 
 	client := &Client{
@@ -68,12 +63,7 @@ func NewClient(urlStr string, logger *log.Logger) (*Client, error) {
 	return client, nil
 }
 
-func NewClientForPostFile(logger *log.Logger) (*Client, error) {
-	var discardLogger = log.New(io.Discard, "", log.LstdFlags)
-	if logger == nil {
-		logger = discardLogger
-	}
-
+func NewClientForPostFile(logger *slog.Logger) (*Client, error) {
 	client := &Client{
 		HTTPClient: http.DefaultClient,
 		Logger:     logger,
@@ -109,18 +99,23 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
+	c.Logger.Debug("request", "url", req.URL.String(), "method", req.Method, "header", req.Header)
+
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read res.Body: %w", err)
+	}
+
+	c.Logger.Debug("request", "url", req.URL.String(), "method", req.Method, "header", req.Header, "status", res.StatusCode, "body", body)
+
 	if res.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200: %w", err)
-		}
-		return fmt.Errorf("status code: %d; body: %s", res.StatusCode, b)
+		return fmt.Errorf("status code: %d; body: %s", res.StatusCode, body)
 	}
 
 	return nil
@@ -168,6 +163,8 @@ func (c *Client) PostFile(ctx context.Context, token string, param *PostFilePara
 	if err != nil {
 		return err
 	}
+
+	c.Logger.Debug("request", "url", req.URL.String(), "method", req.Method, "header", req.Header, "status", res.StatusCode, "body", b)
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200; body: %s", b)

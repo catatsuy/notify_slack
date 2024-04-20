@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestNewClient_badURL(t *testing.T) {
-	_, err := NewClient("", nil)
+	_, err := NewClient("", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -27,7 +28,7 @@ func TestNewClient_badURL(t *testing.T) {
 }
 
 func TestNewClient_parsesURL(t *testing.T) {
-	client, err := NewClient("https://example.com/foo/bar", nil)
+	client, err := NewClient("https://example.com/foo/bar", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +81,7 @@ func TestPostText_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_ok.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +110,7 @@ func TestPostText_Fail(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_fail.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +173,7 @@ func TestPostFile_Success(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForPostFile(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +233,7 @@ func TestPostFile_Success_provideFiletype(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForPostFile(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,7 +264,7 @@ func TestPostFile_FailNotOk(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForPostFile(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +301,7 @@ func TestPostFile_FailNotResponseStatusCodeNotOK(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForPostFile(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,7 +337,7 @@ func TestPostFile_FailNotJSON(t *testing.T) {
 
 	defer SetSlackFilesUploadURL(testAPIServer.URL)()
 
-	c, err := NewClientForPostFile(nil)
+	c, err := NewClientForPostFile(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
