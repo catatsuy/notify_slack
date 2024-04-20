@@ -9,16 +9,17 @@ import (
 
 	"github.com/catatsuy/notify_slack/internal/config"
 	"github.com/catatsuy/notify_slack/internal/slack"
+	"github.com/google/go-cmp/cmp"
 )
 
 type fakeSlackClient struct {
 	slack.Slack
 
-	FakePostFile func(ctx context.Context, filename string) error
+	FakePostFile func(ctx context.Context, filename string, content []byte) error
 }
 
-func (c *fakeSlackClient) PostFile(ctx context.Context, filename string) error {
-	return c.FakePostFile(ctx, filename)
+func (c *fakeSlackClient) PostFile(ctx context.Context, filename string, content []byte) error {
+	return c.FakePostFile(ctx, filename, content)
 }
 
 func (c *fakeSlackClient) PostText(ctx context.Context, param *slack.PostTextParam) error {
@@ -62,10 +63,15 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename string) error {
+		FakePostFile: func(ctx context.Context, filename string, content []byte) error {
 			expectedFilename := "testdata/upload.txt"
 			if filename != expectedFilename {
 				t.Errorf("expected %s; got %s", expectedFilename, filename)
+			}
+
+			expectedContent := "upload_test\n"
+			if diff := cmp.Diff(expectedContent, string(content)); diff != "" {
+				t.Errorf("unexpected diff: (-want +got):\n%s", diff)
 			}
 
 			return nil
@@ -78,7 +84,7 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename string) error {
+		FakePostFile: func(ctx context.Context, filename string, content []byte) error {
 			expectedFilename := "overwrite.txt"
 			if filename != expectedFilename {
 				t.Errorf("expected %s; got %s", expectedFilename, filename)

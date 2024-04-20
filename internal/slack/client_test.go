@@ -173,7 +173,7 @@ func TestPostFile_Success(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -294,7 +294,7 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -373,7 +373,7 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -451,7 +451,7 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 
 		expectedV := url.Values{}
 		expectedV.Set("filename", param.Filename)
-		expectedV.Set("length", strconv.FormatInt(param.Length, 10))
+		expectedV.Set("length", strconv.Itoa(param.Length))
 
 		if diff := cmp.Diff(expectedV, actualV); diff != "" {
 			t.Errorf("unexpected diff: (-want +got):\n%s", diff)
@@ -523,12 +523,12 @@ func TestUploadToURL_success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f, err := os.Open("testdata/upload.txt")
+	b, err := os.ReadFile("testdata/upload.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL, f)
+	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -548,12 +548,12 @@ func TestUploadToURL_fail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f, err := os.Open("testdata/upload.txt")
+	b, err := os.ReadFile("testdata/upload.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "upload.txt", testAPIServer.URL, f)
+	err = c.UploadToURL(context.Background(), "upload.txt", testAPIServer.URL, b)
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
