@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/signal"
 	"runtime"
@@ -60,6 +61,7 @@ func (c *CLI) Run(args []string) int {
 		uploadFilename string
 		filetype       string
 		snippetMode    bool
+		debugMode      bool
 	)
 
 	c.conf = config.NewConfig()
@@ -78,6 +80,8 @@ func (c *CLI) Run(args []string) int {
 	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading to snippet)")
 
 	flags.BoolVar(&snippetMode, "snippet", false, "switch to snippet uploading mode")
+
+	flags.BoolVar(&debugMode, "debug", false, "debug mode (for developers)")
 
 	flags.BoolVar(&version, "version", false, "Print version information and quit")
 
@@ -128,13 +132,20 @@ func (c *CLI) Run(args []string) int {
 		return ExitCodeFail
 	}
 
+	var logger *slog.Logger
+	if debugMode {
+		logger = slog.New(slog.NewTextHandler(c.errStream, &slog.HandlerOptions{AddSource: true, Level: slog.LevelDebug}))
+	} else {
+		logger = slog.New(slog.NewTextHandler(c.errStream, nil))
+	}
+
 	if filename != "" || snippetMode {
 		if c.conf.Token == "" {
 			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
 			return ExitCodeFail
 		}
 
-		c.sClient, err = slack.NewClientForFile(c.conf.Token)
+		c.sClient, err = slack.NewClientForFile(c.conf.Token, logger)
 		if err != nil {
 			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail
@@ -154,7 +165,7 @@ func (c *CLI) Run(args []string) int {
 		return ExitCodeFail
 	}
 
-	c.sClient, err = slack.NewClient(c.conf.SlackURL, nil)
+	c.sClient, err = slack.NewClient(c.conf.SlackURL, logger)
 	if err != nil {
 		fmt.Fprintln(c.errStream, err)
 		return ExitCodeFail

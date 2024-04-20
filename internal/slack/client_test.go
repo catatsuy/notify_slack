@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestNewClient_badURL(t *testing.T) {
-	_, err := NewClient("", nil)
+	_, err := NewClient("", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -30,7 +31,7 @@ func TestNewClient_badURL(t *testing.T) {
 }
 
 func TestNewClient_parsesURL(t *testing.T) {
-	client, err := NewClient("https://example.com/foo/bar", nil)
+	client, err := NewClient("https://example.com/foo/bar", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +84,7 @@ func TestPostText_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/post_text_ok.html")
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +118,7 @@ func TestPostText_Fail(t *testing.T) {
 		w.Write(b)
 	})
 
-	c, err := NewClient(testAPIServer.URL, nil)
+	c, err := NewClient(testAPIServer.URL, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +184,7 @@ func TestPostFile_Success(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +218,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	_, err := NewClientForFile("")
+	_, err := NewClientForFile("", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	expectedErrorPart := "provide Slack token"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -225,7 +226,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -312,7 +313,7 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -390,7 +391,7 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -463,7 +464,7 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 
 	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -517,7 +518,7 @@ func TestUploadToURL_success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/upload_to_url_ok.txt")
 	})
 
-	c, err := NewClientForFile("abcd")
+	c, err := NewClientForFile("abcd", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -542,7 +543,7 @@ func TestUploadToURL_fail(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 	})
 
-	c, err := NewClientForFile("abcd")
+	c, err := NewClientForFile("abcd", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -606,7 +607,7 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 
 	defer SetFilesCompleteUploadExternalURL(testAPIServer.URL + "/api/files.completeUploadExternal")()
 
-	c, err := NewClientForFile(slackToken)
+	c, err := NewClientForFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
