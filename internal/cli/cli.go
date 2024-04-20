@@ -244,7 +244,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 	defer reader.Close()
 
-	_, err := io.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 		uploadFilename = filename
 	}
 
-	err = c.sClient.PostFile(ctx, uploadFilename)
+	err = c.sClient.PostFile(ctx, uploadFilename, content)
 	if err != nil {
 		return err
 	}

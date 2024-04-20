@@ -10,7 +10,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -54,12 +53,12 @@ type PostTextParam struct {
 type GetUploadURLExternalResParam struct {
 	Filename    string
 	SnippetType string
-	Length      int64
+	Length      int
 }
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, filename string) error
+	PostFile(ctx context.Context, filename string, content []byte) error
 }
 
 func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
@@ -144,21 +143,10 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-func (c *Client) PostFile(ctx context.Context, filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
+func (c *Client) PostFile(ctx context.Context, filename string, content []byte) error {
 	param := &GetUploadURLExternalResParam{
 		Filename: filename,
-		Length:   fileInfo.Size(),
+		Length:   len(content),
 	}
 
 	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, param)
@@ -166,7 +154,7 @@ func (c *Client) PostFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("failed to get upload url: %w", err)
 	}
 
-	err = c.UploadToURL(ctx, filename, uploadURL, file)
+	err = c.UploadToURL(ctx, filename, uploadURL, content)
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
@@ -194,7 +182,7 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, param *GetUploadUR
 
 	v := url.Values{}
 	v.Set("filename", param.Filename)
-	v.Set("length", strconv.FormatInt(param.Length, 10))
+	v.Set("length", strconv.Itoa(param.Length))
 
 	if param.SnippetType != "" {
 		v.Set("snippet_type", param.SnippetType)
@@ -238,7 +226,7 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, param *GetUploadUR
 	return apiRes.UploadURL, apiRes.FileID, nil
 }
 
-func (c *Client) UploadToURL(ctx context.Context, filename, uploadURL string, f *os.File) error {
+func (c *Client) UploadToURL(ctx context.Context, filename, uploadURL string, content []byte) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", filename)
@@ -246,9 +234,9 @@ func (c *Client) UploadToURL(ctx context.Context, filename, uploadURL string, f 
 		return fmt.Errorf("failed to create form file: %w", err)
 	}
 
-	_, err = io.Copy(part, f)
+	_, err = part.Write(content)
 	if err != nil {
-		return fmt.Errorf("failed to copy file: %w", err)
+		return fmt.Errorf("failed to write content: %w", err)
 	}
 
 	contentType := writer.FormDataContentType()
