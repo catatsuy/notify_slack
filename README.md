@@ -55,7 +55,7 @@ The Slack API allows you to specify the filetype of a file when posting it as a 
 -c string
       config file name
 -channel string
-      specify channel (unavailable for new Incoming Webhooks)
+      specify channel (unavailable for new Incoming Webhooks and uploading a file)
 -channel-id string
       specify channel id (for uploading a file)
 -debug
@@ -96,6 +96,7 @@ The toml file contains the following information.
 url = "https://hooks.slack.com/services/**"
 token = "xoxp-xxxxx"
 channel = "#general"
+channel_id = "C12345678"
 username = "tester"
 icon_emoji = ":rocket:"
 interval = "1s"

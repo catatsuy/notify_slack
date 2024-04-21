@@ -69,7 +69,7 @@ func (c *CLI) Run(args []string) int {
 	flags := flag.NewFlagSet("notify_slack", flag.ContinueOnError)
 	flags.SetOutput(c.errStream)
 
-	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel (unavailable for new Incoming Webhooks)")
+	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel (unavailable for new Incoming Webhooks and uploading a file)")
 	flags.StringVar(&c.conf.ChannelID, "channel-id", "", "specify channel id (for uploading a file)")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url (Incoming Webhooks URL)")
 	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading a file)")
