@@ -133,26 +133,4 @@ func TestUploadSnippet(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected nil; got %v", err)
 	}
-
-	cl.conf.SnippetChannel = "snippet_channel"
-
-	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
-			if params.ChannelID != cl.conf.SnippetChannel {
-				t.Errorf("expected %s; got %s", cl.conf.SnippetChannel, params.ChannelID)
-			}
-
-			expectedFilename := "testdata/upload.txt"
-			if params.Filename != expectedFilename {
-				t.Errorf("expected %s; got %s", expectedFilename, params.Filename)
-			}
-
-			expectedContent := "upload_test\n"
-			if diff := cmp.Diff(expectedContent, string(content)); diff != "" {
-				t.Errorf("unexpected diff: (-want +got):\n%s", diff)
-			}
-
-			return nil
-		},
-	}
 }
