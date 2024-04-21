@@ -19,6 +19,7 @@ type Config struct {
 	PrimaryChannel string
 	Channel        string
 	SnippetChannel string
+	FileChannelID  string
 	Username       string
 	IconEmoji      string
 	Duration       time.Duration
@@ -42,7 +43,13 @@ func (c *Config) LoadEnv() error {
 	}
 
 	if c.SnippetChannel == "" {
-		c.SnippetChannel = os.Getenv("NOTIFY_SLACK_SNIPPET_CHANNEL")
+		if os.Getenv("NOTIFY_SLACK_SNIPPET_CHANNEL") != "" {
+			return fmt.Errorf("the NOTIFY_SLACK_SNIPPET_CHANNEL option is deprecated")
+		}
+	}
+
+	if c.FileChannelID == "" {
+		c.FileChannelID = os.Getenv("NOTIFY_SLACK_FILE_CHANNEL_ID")
 	}
 
 	if c.Username == "" {
@@ -70,6 +77,7 @@ type slackConfig struct {
 	Token          string
 	Channel        string
 	SnippetChannel string `toml:"snippet_channel"`
+	FileChannelID  string `toml:"file_channel_id"`
 	Username       string
 	IconEmoji      string `toml:"icon_emoji"`
 	Interval       string
@@ -109,14 +117,17 @@ func (c *Config) LoadTOML(filename string) error {
 			c.Channel = slackConfig.Channel
 		}
 	}
-	if c.SnippetChannel == "" {
-		if slackConfig.SnippetChannel != "" {
-			c.SnippetChannel = slackConfig.SnippetChannel
-		}
-	}
 	if c.Username == "" {
 		if slackConfig.Username != "" {
 			c.Username = slackConfig.Username
+		}
+	}
+	if slackConfig.SnippetChannel != "" {
+		return fmt.Errorf("the snippet_channel option is deprecated")
+	}
+	if c.FileChannelID == "" {
+		if slackConfig.FileChannelID != "" {
+			c.FileChannelID = slackConfig.FileChannelID
 		}
 	}
 	if c.IconEmoji == "" {

@@ -2,7 +2,7 @@
 url = "https://hooks.slack.com/aaaaa"
 token = "xoxp-token"
 channel = "#test"
-file_channel_id = "C12345678"
+snippet_channel = "#general"
 username = "deploy!"
 icon_emoji = ":rocket:"
 interval = "2s"
