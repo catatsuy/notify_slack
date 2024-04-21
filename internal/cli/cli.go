@@ -70,7 +70,7 @@ func (c *CLI) Run(args []string) int {
 	flags.SetOutput(c.errStream)
 
 	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel (unavailable for new Incoming Webhooks)")
-	flags.StringVar(&c.conf.FileChannelID, "channel-id", "", "specify channel id (for uploading a file)")
+	flags.StringVar(&c.conf.ChannelID, "channel-id", "", "specify channel id (for uploading a file)")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url (Incoming Webhooks URL)")
 	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading a file)")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username (unavailable for new Incoming Webhooks)")
@@ -215,7 +215,7 @@ func (c *CLI) Run(args []string) int {
 }
 
 func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snippetType string) error {
-	channelID := c.conf.FileChannelID
+	channelID := c.conf.ChannelID
 
 	var reader io.ReadCloser
 	if filename == "" {

@@ -28,9 +28,9 @@ func TestLoadTOML(t *testing.T) {
 	if c.Channel != expectedChannel {
 		t.Errorf("got %s, want %s", c.Channel, expectedChannel)
 	}
-	expectedFileChannelID := "C12345678"
-	if c.FileChannelID != expectedFileChannelID {
-		t.Errorf("got %s, want %s", c.FileChannelID, expectedFileChannelID)
+	expectedChannelID := "C12345678"
+	if c.ChannelID != expectedChannelID {
+		t.Errorf("got %s, want %s", c.ChannelID, expectedChannelID)
 	}
 	expectedUsername := "deploy!"
 	if c.Username != expectedUsername {
@@ -63,7 +63,7 @@ func TestLoadEnv(t *testing.T) {
 	expectedSlackURL := "https://hooks.slack.com/aaaaa"
 	expectedToken := "xoxp-token"
 	expectedChannel := "#test"
-	expectedFileChannelID := "C12345678"
+	expectedChannelID := "C12345678"
 	expectedUsername := "deploy!"
 	expectedIconEmoji := ":rocket:"
 	expectedIntervalStr := "2s"
@@ -72,7 +72,7 @@ func TestLoadEnv(t *testing.T) {
 	t.Setenv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
 	t.Setenv("NOTIFY_SLACK_TOKEN", expectedToken)
 	t.Setenv("NOTIFY_SLACK_CHANNEL", expectedChannel)
-	t.Setenv("NOTIFY_SLACK_CHANNEL_ID", expectedFileChannelID)
+	t.Setenv("NOTIFY_SLACK_CHANNEL_ID", expectedChannelID)
 	t.Setenv("NOTIFY_SLACK_USERNAME", expectedUsername)
 	t.Setenv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
 	t.Setenv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
@@ -95,8 +95,8 @@ func TestLoadEnv(t *testing.T) {
 		t.Errorf("got %s, want %s", c.Channel, expectedChannel)
 	}
 
-	if c.FileChannelID != expectedFileChannelID {
-		t.Errorf("got %s, want %s", c.FileChannelID, expectedFileChannelID)
+	if c.ChannelID != expectedChannelID {
+		t.Errorf("got %s, want %s", c.ChannelID, expectedChannelID)
 	}
 
 	if c.Username != expectedUsername {

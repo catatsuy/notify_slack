@@ -18,7 +18,7 @@ type Config struct {
 	Token          string
 	Channel        string
 	SnippetChannel string
-	FileChannelID  string
+	ChannelID      string
 	Username       string
 	IconEmoji      string
 	Duration       time.Duration
@@ -47,8 +47,8 @@ func (c *Config) LoadEnv() error {
 		}
 	}
 
-	if c.FileChannelID == "" {
-		c.FileChannelID = os.Getenv("NOTIFY_SLACK_CHANNEL_ID")
+	if c.ChannelID == "" {
+		c.ChannelID = os.Getenv("NOTIFY_SLACK_CHANNEL_ID")
 	}
 
 	if c.Username == "" {
@@ -76,7 +76,7 @@ type slackConfig struct {
 	Token          string
 	Channel        string
 	SnippetChannel string `toml:"snippet_channel"`
-	FileChannelID  string `toml:"file_channel_id"`
+	ChannelID      string `toml:"channel_id"`
 	Username       string
 	IconEmoji      string `toml:"icon_emoji"`
 	Interval       string
@@ -124,9 +124,9 @@ func (c *Config) LoadTOML(filename string) error {
 	if slackConfig.SnippetChannel != "" {
 		return fmt.Errorf("the snippet_channel option is deprecated")
 	}
-	if c.FileChannelID == "" {
-		if slackConfig.FileChannelID != "" {
-			c.FileChannelID = slackConfig.FileChannelID
+	if c.ChannelID == "" {
+		if slackConfig.ChannelID != "" {
+			c.ChannelID = slackConfig.ChannelID
 		}
 	}
 	if c.IconEmoji == "" {

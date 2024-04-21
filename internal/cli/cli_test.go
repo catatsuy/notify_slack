@@ -49,7 +49,7 @@ func TestUploadSnippet(t *testing.T) {
 		conf:    config.NewConfig(),
 	}
 
-	cl.conf.FileChannelID = "C12345678"
+	cl.conf.ChannelID = "C12345678"
 	err := cl.uploadSnippet(context.Background(), "testdata/nofile.txt", "", "")
 	want := "no such file or directory"
 	if err == nil || !strings.Contains(err.Error(), want) {
@@ -100,8 +100,8 @@ func TestUploadSnippet(t *testing.T) {
 
 	cl.sClient = &fakeSlackClient{
 		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
-			if params.ChannelID != cl.conf.FileChannelID {
-				t.Errorf("expected %s; got %s", cl.conf.FileChannelID, params.ChannelID)
+			if params.ChannelID != cl.conf.ChannelID {
+				t.Errorf("expected %s; got %s", cl.conf.ChannelID, params.ChannelID)
 			}
 
 			expectedFilename := "overwrite.txt"
