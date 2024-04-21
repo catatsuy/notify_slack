@@ -16,7 +16,6 @@ var (
 type Config struct {
 	SlackURL       string
 	Token          string
-	PrimaryChannel string
 	Channel        string
 	SnippetChannel string
 	FileChannelID  string

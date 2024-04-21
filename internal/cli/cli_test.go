@@ -55,7 +55,7 @@ func TestUploadSnippet(t *testing.T) {
 		t.Errorf("error = %v; want %q", err, want)
 	}
 
-	cl.conf.Channel = "normal_channel"
+	cl.conf.FileChannelID = "C12345678"
 	err = cl.uploadSnippet(context.Background(), "testdata/nofile.txt", "", "")
 	want = "no such file or directory"
 	if err == nil || !strings.Contains(err.Error(), want) {
@@ -106,8 +106,8 @@ func TestUploadSnippet(t *testing.T) {
 
 	cl.sClient = &fakeSlackClient{
 		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
-			if params.ChannelID != cl.conf.Channel {
-				t.Errorf("expected %s; got %s", cl.conf.Channel, params.ChannelID)
+			if params.ChannelID != cl.conf.FileChannelID {
+				t.Errorf("expected %s; got %s", cl.conf.FileChannelID, params.ChannelID)
 			}
 
 			expectedFilename := "overwrite.txt"
@@ -154,37 +154,5 @@ func TestUploadSnippet(t *testing.T) {
 
 			return nil
 		},
-	}
-
-	err = cl.uploadSnippet(context.Background(), "testdata/upload.txt", "", "")
-	if err != nil {
-		t.Errorf("expected nil; got %v", err)
-	}
-
-	cl.conf.PrimaryChannel = "primary_channel"
-
-	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
-			if params.ChannelID != cl.conf.PrimaryChannel {
-				t.Errorf("expected %s; got %s", cl.conf.PrimaryChannel, params.ChannelID)
-			}
-
-			expectedFilename := "testdata/upload.txt"
-			if params.Filename != expectedFilename {
-				t.Errorf("expected %s; got %s", expectedFilename, params.Filename)
-			}
-
-			expectedContent := "upload_test\n"
-			if diff := cmp.Diff(expectedContent, string(content)); diff != "" {
-				t.Errorf("unexpected diff: (-want +got):\n%s", diff)
-			}
-
-			return nil
-		},
-	}
-
-	err = cl.uploadSnippet(context.Background(), "testdata/upload.txt", "", "")
-	if err != nil {
-		t.Errorf("expected nil; got %v", err)
 	}
 }
