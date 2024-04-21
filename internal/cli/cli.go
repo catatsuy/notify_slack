@@ -253,7 +253,12 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 		uploadFilename = filename
 	}
 
-	err = c.sClient.PostFile(ctx, uploadFilename, channel, content)
+	params := &slack.PostFileParam{
+		ChannelID: channel,
+		Filename:  uploadFilename,
+	}
+
+	err = c.sClient.PostFile(ctx, params, content)
 	if err != nil {
 		return err
 	}

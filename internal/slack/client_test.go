@@ -613,7 +613,12 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.CompleteUploadExternal(context.Background(), "file-id", "file-title", "C0NF841BK")
+	params := &CompleteUploadExternalParam{
+		FileID:    "file-id",
+		Title:     "file-title",
+		ChannelID: "C0NF841BK",
+	}
+	err = c.CompleteUploadExternal(context.Background(), params)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,11 +15,11 @@ import (
 type fakeSlackClient struct {
 	slack.Slack
 
-	FakePostFile func(ctx context.Context, filename, channelID string, content []byte) error
+	FakePostFile func(ctx context.Context, params *slack.PostFileParam, content []byte) error
 }
 
-func (c *fakeSlackClient) PostFile(ctx context.Context, filename, channelID string, content []byte) error {
-	return c.FakePostFile(ctx, filename, channelID, content)
+func (c *fakeSlackClient) PostFile(ctx context.Context, params *slack.PostFileParam, content []byte) error {
+	return c.FakePostFile(ctx, params, content)
 }
 
 func (c *fakeSlackClient) PostText(ctx context.Context, param *slack.PostTextParam) error {
@@ -63,10 +63,10 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename, channelID string, content []byte) error {
+		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
 			expectedFilename := "testdata/upload.txt"
-			if filename != expectedFilename {
-				t.Errorf("expected %s; got %s", expectedFilename, filename)
+			if params.Filename != expectedFilename {
+				t.Errorf("expected %s; got %s", expectedFilename, params.Filename)
 			}
 
 			expectedContent := "upload_test\n"
@@ -84,10 +84,10 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.sClient = &fakeSlackClient{
-		FakePostFile: func(ctx context.Context, filename, channelID string, content []byte) error {
+		FakePostFile: func(ctx context.Context, params *slack.PostFileParam, content []byte) error {
 			expectedFilename := "overwrite.txt"
-			if filename != expectedFilename {
-				t.Errorf("expected %s; got %s", expectedFilename, filename)
+			if params.Filename != expectedFilename {
+				t.Errorf("expected %s; got %s", expectedFilename, params.Filename)
 			}
 
 			expectedContent := "upload_test\n"

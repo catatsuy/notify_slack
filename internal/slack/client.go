@@ -31,10 +31,11 @@ type Client struct {
 }
 
 type PostFileParam struct {
-	Channel  string
-	Content  string
-	Filename string
-	Filetype string
+	ChannelID   string
+	Filename    string
+	AltText     string
+	Title       string
+	SnippetType string
 }
 
 type GetUploadURLExternalRes struct {
@@ -54,11 +55,12 @@ type GetUploadURLExternalResParam struct {
 	Filename    string
 	SnippetType string
 	Length      int
+	AltText     string
 }
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, filename, channelID string, content []byte) error
+	PostFile(ctx context.Context, params *PostFileParam, content []byte) error
 }
 
 func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
@@ -143,23 +145,30 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-func (c *Client) PostFile(ctx context.Context, filename, channelID string, content []byte) error {
-	param := &GetUploadURLExternalResParam{
-		Filename: filename,
+func (c *Client) PostFile(ctx context.Context, params *PostFileParam, content []byte) error {
+	uParam := &GetUploadURLExternalResParam{
+		Filename: params.Filename,
 		Length:   len(content),
+		AltText:  params.AltText,
 	}
 
-	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, param)
+	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, uParam)
 	if err != nil {
 		return fmt.Errorf("failed to get upload url: %w", err)
 	}
 
-	err = c.UploadToURL(ctx, filename, uploadURL, content)
+	err = c.UploadToURL(ctx, params.Filename, uploadURL, content)
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	err = c.CompleteUploadExternal(ctx, fileID, filename, channelID)
+	cParam := &CompleteUploadExternalParam{
+		FileID:    fileID,
+		Title:     params.Title,
+		ChannelID: params.ChannelID,
+	}
+
+	err = c.CompleteUploadExternal(ctx, cParam)
 	if err != nil {
 		return fmt.Errorf("failed to complete upload: %w", err)
 	}
@@ -183,6 +192,10 @@ func (c *Client) GetUploadURLExternalURL(ctx context.Context, param *GetUploadUR
 	v := url.Values{}
 	v.Set("filename", param.Filename)
 	v.Set("length", strconv.Itoa(param.Length))
+
+	if param.AltText != "" {
+		v.Set("alt_text", param.AltText)
+	}
 
 	if param.SnippetType != "" {
 		v.Set("snippet_type", param.SnippetType)
@@ -275,7 +288,7 @@ func (c *Client) UploadToURL(ctx context.Context, filename, uploadURL string, co
 
 type FileSummary struct {
 	ID    string `json:"id"`
-	Title string `json:"title"`
+	Title string `json:"title,omitempty"`
 }
 
 type CompleteUploadExternalRes struct {
@@ -286,8 +299,14 @@ type CompleteUploadExternalRes struct {
 	} `json:"files"`
 }
 
-func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title, channelID string) error {
-	request := []FileSummary{{ID: fileID, Title: title}}
+type CompleteUploadExternalParam struct {
+	FileID    string
+	Title     string
+	ChannelID string
+}
+
+func (c *Client) CompleteUploadExternal(ctx context.Context, params *CompleteUploadExternalParam) error {
+	request := []FileSummary{{ID: params.FileID, Title: params.Title}}
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
 		return err
@@ -295,8 +314,8 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, fileID, title, chan
 
 	v := url.Values{}
 	v.Set("files", string(requestBytes))
-	if channelID != "" {
-		v.Set("channel_id", channelID)
+	if params.ChannelID != "" {
+		v.Set("channel_id", params.ChannelID)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, filesCompleteUploadExternalURL, strings.NewReader(v.Encode()))
