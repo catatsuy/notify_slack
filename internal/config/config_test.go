@@ -72,7 +72,7 @@ func TestLoadEnv(t *testing.T) {
 	t.Setenv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
 	t.Setenv("NOTIFY_SLACK_TOKEN", expectedToken)
 	t.Setenv("NOTIFY_SLACK_CHANNEL", expectedChannel)
-	t.Setenv("NOTIFY_SLACK_FILE_CHANNEL_ID", expectedFileChannelID)
+	t.Setenv("NOTIFY_SLACK_CHANNEL_ID", expectedFileChannelID)
 	t.Setenv("NOTIFY_SLACK_USERNAME", expectedUsername)
 	t.Setenv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
 	t.Setenv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)

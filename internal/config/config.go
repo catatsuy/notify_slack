@@ -48,7 +48,7 @@ func (c *Config) LoadEnv() error {
 	}
 
 	if c.FileChannelID == "" {
-		c.FileChannelID = os.Getenv("NOTIFY_SLACK_FILE_CHANNEL_ID")
+		c.FileChannelID = os.Getenv("NOTIFY_SLACK_CHANNEL_ID")
 	}
 
 	if c.Username == "" {
