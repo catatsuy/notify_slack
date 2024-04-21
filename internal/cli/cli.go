@@ -216,7 +216,7 @@ func (c *CLI) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filetype string) error {
+func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snippetType string) error {
 	channel := c.conf.PrimaryChannel
 	if channel == "" {
 		channel = c.conf.SnippetChannel
@@ -254,8 +254,9 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 
 	params := &slack.PostFileParam{
-		ChannelID: channel,
-		Filename:  uploadFilename,
+		ChannelID:   channel,
+		Filename:    uploadFilename,
+		SnippetType: snippetType,
 	}
 
 	err = c.sClient.PostFile(ctx, params, content)

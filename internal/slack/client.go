@@ -53,8 +53,8 @@ type PostTextParam struct {
 
 type GetUploadURLExternalResParam struct {
 	Filename    string
-	SnippetType string
 	Length      int
+	SnippetType string
 	AltText     string
 }
 
@@ -147,9 +147,10 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 
 func (c *Client) PostFile(ctx context.Context, params *PostFileParam, content []byte) error {
 	uParam := &GetUploadURLExternalResParam{
-		Filename: params.Filename,
-		Length:   len(content),
-		AltText:  params.AltText,
+		Filename:    params.Filename,
+		Length:      len(content),
+		SnippetType: params.SnippetType,
+		AltText:     params.AltText,
 	}
 
 	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, uParam)
