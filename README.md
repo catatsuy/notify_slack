@@ -56,10 +56,14 @@ The Slack API allows you to specify the filetype of a file when posting it as a 
       config file name
 -channel string
       specify channel (unavailable for new Incoming Webhooks)
+-channel-id string
+      specify channel id (for uploading a file)
+-debug
+      debug mode (for developers)
 -filename string
-      specify a file name (for uploading to snippet)
+      specify a file name (for uploading a file)
 -filetype string
-      specify a filetype (for uploading to snippet)
+      specify a filetype (for uploading a file)
 -icon-emoji string
       specify icon emoji (unavailable for new Incoming Webhooks)
 -interval duration
@@ -67,9 +71,9 @@ The Slack API allows you to specify the filetype of a file when posting it as a 
 -slack-url string
       slack url (Incoming Webhooks URL)
 -snippet
-      switch to snippet uploading mode
+      switch to file uploading mode
 -token string
-      token (for uploading to snippet)
+      token (for uploading a file)
 -username string
       specify username (unavailable for new Incoming Webhooks)
 -version

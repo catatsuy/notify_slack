@@ -49,15 +49,9 @@ func TestUploadSnippet(t *testing.T) {
 		conf:    config.NewConfig(),
 	}
 
-	err := cl.uploadSnippet(context.Background(), "", "", "")
-	want := "must specify channel"
-	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Errorf("error = %v; want %q", err, want)
-	}
-
 	cl.conf.FileChannelID = "C12345678"
-	err = cl.uploadSnippet(context.Background(), "testdata/nofile.txt", "", "")
-	want = "no such file or directory"
+	err := cl.uploadSnippet(context.Background(), "testdata/nofile.txt", "", "")
+	want := "no such file or directory"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Errorf("error = %v; want %q", err, want)
 	}

@@ -72,15 +72,15 @@ func (c *CLI) Run(args []string) int {
 	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel (unavailable for new Incoming Webhooks)")
 	flags.StringVar(&c.conf.FileChannelID, "channel-id", "", "specify channel id (for uploading a file)")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url (Incoming Webhooks URL)")
-	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading to snippet)")
+	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading a file)")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username (unavailable for new Incoming Webhooks)")
 	flags.StringVar(&c.conf.IconEmoji, "icon-emoji", "", "specify icon emoji (unavailable for new Incoming Webhooks)")
 	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
-	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading to snippet)")
-	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading to snippet)")
+	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading a file)")
+	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading a file)")
 
-	flags.BoolVar(&snippetMode, "snippet", false, "switch to snippet uploading mode")
+	flags.BoolVar(&snippetMode, "snippet", false, "switch to file uploading mode")
 
 	flags.BoolVar(&debugMode, "debug", false, "debug mode (for developers)")
 
@@ -216,9 +216,6 @@ func (c *CLI) Run(args []string) int {
 
 func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snippetType string) error {
 	channelID := c.conf.FileChannelID
-	if channelID == "" {
-		return fmt.Errorf("must specify channel_id for uploading a file")
-	}
 
 	var reader io.ReadCloser
 	if filename == "" {
