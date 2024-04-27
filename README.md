@@ -108,13 +108,10 @@ Note:
     * You can use the following options to customize your message when posting to Slack as text: `channel`, `username`, `icon_emoji`, and `interval`.
     * Due to a recent change in the specification for Incoming Webhooks, it is currently not possible to override the `channel`, `username`, and `icon_emoji` options when posting to Slack. For more information, please refer to [this resource](https://api.slack.com/messaging/webhooks#advanced_message_formatting)
     * You can create an Incoming Webhooks URL at https://slack.com/services/new/incoming-webhook
-  * To post a file as a snippet to Slack, you will need to provide both a `token` and a `channel`.
+  * To post a file as a snippet to Slack, you will need to provide both a `token` and a `channel_id`.
     * The `username` and `icon_emoji` options will be ignored when posting a file as a snippet to Slack.
     * For instructions on how to create a token, please see the next section.
-
-Tips:
-
-  * If you want to use a different default channel for snippets, you can specify it using the `snippet_channel` option.
+    * You cannot specify a channel because the slack api support only the channel_id.
 
 ### How to create a token
 
