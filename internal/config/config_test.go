@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -27,9 +28,9 @@ func TestLoadTOML(t *testing.T) {
 	if c.Channel != expectedChannel {
 		t.Errorf("got %s, want %s", c.Channel, expectedChannel)
 	}
-	expectedSnippetChannel := "#general"
-	if c.SnippetChannel != expectedSnippetChannel {
-		t.Errorf("got %s, want %s", c.SnippetChannel, expectedSnippetChannel)
+	expectedChannelID := "C12345678"
+	if c.ChannelID != expectedChannelID {
+		t.Errorf("got %s, want %s", c.ChannelID, expectedChannelID)
 	}
 	expectedUsername := "deploy!"
 	if c.Username != expectedUsername {
@@ -45,11 +46,24 @@ func TestLoadTOML(t *testing.T) {
 	}
 }
 
+func TestLoadTOML_Deprecated(t *testing.T) {
+	c := NewConfig()
+	err := c.LoadTOML("./testdata/config_deprecated.toml")
+	if err == nil {
+		t.Fatal("expected error, but got nil")
+	}
+
+	expected := "the snippet_channel option is deprecated"
+	if !strings.Contains(err.Error(), expected) {
+		t.Errorf("got %s, want %s", err.Error(), expected)
+	}
+}
+
 func TestLoadEnv(t *testing.T) {
 	expectedSlackURL := "https://hooks.slack.com/aaaaa"
 	expectedToken := "xoxp-token"
 	expectedChannel := "#test"
-	expectedSnippetChannel := "#general"
+	expectedChannelID := "C12345678"
 	expectedUsername := "deploy!"
 	expectedIconEmoji := ":rocket:"
 	expectedIntervalStr := "2s"
@@ -58,7 +72,7 @@ func TestLoadEnv(t *testing.T) {
 	t.Setenv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
 	t.Setenv("NOTIFY_SLACK_TOKEN", expectedToken)
 	t.Setenv("NOTIFY_SLACK_CHANNEL", expectedChannel)
-	t.Setenv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
+	t.Setenv("NOTIFY_SLACK_CHANNEL_ID", expectedChannelID)
 	t.Setenv("NOTIFY_SLACK_USERNAME", expectedUsername)
 	t.Setenv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
 	t.Setenv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
@@ -81,8 +95,8 @@ func TestLoadEnv(t *testing.T) {
 		t.Errorf("got %s, want %s", c.Channel, expectedChannel)
 	}
 
-	if c.SnippetChannel != expectedSnippetChannel {
-		t.Errorf("got %s, want %s", c.SnippetChannel, expectedSnippetChannel)
+	if c.ChannelID != expectedChannelID {
+		t.Errorf("got %s, want %s", c.ChannelID, expectedChannelID)
 	}
 
 	if c.Username != expectedUsername {
@@ -95,6 +109,35 @@ func TestLoadEnv(t *testing.T) {
 
 	if c.Duration != expectedInterval {
 		t.Errorf("got %+v, want %+v", c.Duration, expectedInterval)
+	}
+}
+
+func TestLoadEnv_Deprecated(t *testing.T) {
+	expectedSlackURL := "https://hooks.slack.com/aaaaa"
+	expectedToken := "xoxp-token"
+	expectedChannel := "#test"
+	expectedSnippetChannel := "#general"
+	expectedUsername := "deploy!"
+	expectedIconEmoji := ":rocket:"
+	expectedIntervalStr := "2s"
+
+	t.Setenv("NOTIFY_SLACK_WEBHOOK_URL", expectedSlackURL)
+	t.Setenv("NOTIFY_SLACK_TOKEN", expectedToken)
+	t.Setenv("NOTIFY_SLACK_CHANNEL", expectedChannel)
+	t.Setenv("NOTIFY_SLACK_SNIPPET_CHANNEL", expectedSnippetChannel)
+	t.Setenv("NOTIFY_SLACK_USERNAME", expectedUsername)
+	t.Setenv("NOTIFY_SLACK_ICON_EMOJI", expectedIconEmoji)
+	t.Setenv("NOTIFY_SLACK_INTERVAL", expectedIntervalStr)
+
+	c := NewConfig()
+	err := c.LoadEnv()
+	if err == nil {
+		t.Fatal("expected error, but got nil")
+	}
+
+	expected := "the NOTIFY_SLACK_SNIPPET_CHANNEL option is deprecated"
+	if !strings.Contains(err.Error(), expected) {
+		t.Errorf("got %s, want %s", err.Error(), expected)
 	}
 }
 

@@ -56,10 +56,14 @@ The Slack API allows you to specify the filetype of a file when posting it as a 
       config file name
 -channel string
       specify channel (unavailable for new Incoming Webhooks)
+-channel-id string
+      specify channel id (for uploading a file)
+-debug
+      debug mode (for developers)
 -filename string
       specify a file name (for uploading to snippet)
 -filetype string
-      specify a filetype (for uploading to snippet)
+      [compatible] specify a filetype for uploading to snippet. This option is maintained for compatibility. Please use -snippet-type instead.
 -icon-emoji string
       specify icon emoji (unavailable for new Incoming Webhooks)
 -interval duration
@@ -68,6 +72,8 @@ The Slack API allows you to specify the filetype of a file when posting it as a 
       slack url (Incoming Webhooks URL)
 -snippet
       switch to snippet uploading mode
+-snippet-type string
+      specify a snippet_type (for uploading to snippet)
 -token string
       token (for uploading to snippet)
 -username string
@@ -92,6 +98,7 @@ The toml file contains the following information.
 url = "https://hooks.slack.com/services/**"
 token = "xoxp-xxxxx"
 channel = "#general"
+channel_id = "C12345678"
 username = "tester"
 icon_emoji = ":rocket:"
 interval = "1s"
@@ -103,13 +110,12 @@ Note:
     * You can use the following options to customize your message when posting to Slack as text: `channel`, `username`, `icon_emoji`, and `interval`.
     * Due to a recent change in the specification for Incoming Webhooks, it is currently not possible to override the `channel`, `username`, and `icon_emoji` options when posting to Slack. For more information, please refer to [this resource](https://api.slack.com/messaging/webhooks#advanced_message_formatting)
     * You can create an Incoming Webhooks URL at https://slack.com/services/new/incoming-webhook
-  * To post a file as a snippet to Slack, you will need to provide both a `token` and a `channel`.
+  * To post a file as a snippet to Slack, you will need to provide both a `token` and a `channel_id`.
     * The `username` and `icon_emoji` options will be ignored when posting a file as a snippet to Slack.
     * For instructions on how to create a token, please see the next section.
-
-Tips:
-
-  * If you want to use a different default channel for snippets, you can specify it using the `snippet_channel` option.
+    * You cannot specify a channel because the slack api support only the `channel_id`.
+    * If you don't specify `channel_id`, the file will be private. So, if you need to post a file public, you must specify `channel_id`.
+    * The Slack API can cause delays, so posting might take longer.
 
 ### How to create a token
 
@@ -149,7 +155,7 @@ Some settings for the Slack API can be provided using environment variables.
 NOTIFY_SLACK_WEBHOOK_URL
 NOTIFY_SLACK_TOKEN
 NOTIFY_SLACK_CHANNEL
-NOTIFY_SLACK_SNIPPET_CHANNEL
+NOTIFY_SLACK_CHANNEL_ID
 NOTIFY_SLACK_USERNAME
 NOTIFY_SLACK_ICON_EMOJI
 NOTIFY_SLACK_INTERVAL
