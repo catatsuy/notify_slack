@@ -78,7 +78,8 @@ func (c *CLI) Run(args []string) int {
 	flags.DurationVar(&c.conf.Duration, "interval", time.Second, "interval")
 	flags.StringVar(&tomlFile, "c", "", "config file name")
 	flags.StringVar(&uploadFilename, "filename", "", "specify a file name (for uploading to snippet)")
-	flags.StringVar(&filetype, "filetype", "", "specify a filetype (for uploading to snippet)")
+	flags.StringVar(&filetype, "filetype", "", "[compatible] specify a filetype for uploading to snippet. This option is maintained for compatibility. Please use -snippet-type instead.")
+	flags.StringVar(&filetype, "snippet-type", "", "specify a snippet_type (for uploading to snippet)")
 
 	flags.BoolVar(&snippetMode, "snippet", false, "switch to snippet uploading mode")
 
