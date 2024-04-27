@@ -22,6 +22,8 @@ type Client struct {
 	URL        *url.URL
 	HTTPClient *http.Client
 
+	Token string
+
 	Logger *slog.Logger
 }
 
@@ -41,7 +43,7 @@ type PostFileParam struct {
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, token string, param *PostFileParam) error
+	PostFile(ctx context.Context, param *PostFileParam) error
 }
 
 func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
@@ -63,9 +65,14 @@ func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
 	return client, nil
 }
 
-func NewClientForPostFile(logger *slog.Logger) (*Client, error) {
+func NewClientForPostFile(token string, logger *slog.Logger) (*Client, error) {
+	if len(token) == 0 {
+		return nil, fmt.Errorf("provide Slack token")
+	}
+
 	client := &Client{
 		HTTPClient: http.DefaultClient,
+		Token:      token,
 		Logger:     logger,
 	}
 
@@ -125,17 +132,13 @@ type apiFilesUploadRes struct {
 	OK bool `json:"ok"`
 }
 
-func (c *Client) PostFile(ctx context.Context, token string, param *PostFileParam) error {
-	if len(token) == 0 {
-		return fmt.Errorf("provide Slack token")
-	}
-
+func (c *Client) PostFile(ctx context.Context, param *PostFileParam) error {
 	if param.Content == "" {
 		return fmt.Errorf("the content of the file is empty")
 	}
 
 	v := url.Values{}
-	v.Set("token", token)
+	v.Set("token", c.Token)
 	v.Set("content", param.Content)
 	v.Set("filename", param.Filename)
 	v.Set("channels", param.Channel)
