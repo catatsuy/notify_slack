@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	slackFilesUploadURL            = "https://slack.com/api/files.upload"
 	filesGetUploadURLExternalURL   = "https://slack.com/api/files.getUploadURLExternal"
 	filesCompleteUploadExternalURL = "https://slack.com/api/files.completeUploadExternal"
 )
@@ -45,10 +44,11 @@ type PostTextParam struct {
 }
 
 type PostFileParam struct {
-	Channel  string
-	Content  string
-	Filename string
-	Filetype string
+	ChannelID   string
+	Filename    string
+	AltText     string
+	Title       string
+	SnippetType string
 }
 
 type GetUploadURLExternalResParam struct {
@@ -60,7 +60,7 @@ type GetUploadURLExternalResParam struct {
 
 type Slack interface {
 	PostText(ctx context.Context, param *PostTextParam) error
-	PostFile(ctx context.Context, param *PostFileParam) error
+	PostFile(ctx context.Context, param *PostFileParam, content []byte) error
 }
 
 func NewClient(urlStr string, logger *slog.Logger) (*Client, error) {
@@ -145,60 +145,35 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	return nil
 }
 
-type apiFilesUploadRes struct {
-	OK bool `json:"ok"`
-}
-
-func (c *Client) PostFile(ctx context.Context, param *PostFileParam) error {
-	if param.Content == "" {
-		return fmt.Errorf("the content of the file is empty")
+func (c *Client) PostFile(ctx context.Context, param *PostFileParam, content []byte) error {
+	uParam := &GetUploadURLExternalResParam{
+		Filename:    param.Filename,
+		Length:      len(content),
+		SnippetType: param.SnippetType,
+		AltText:     param.AltText,
 	}
 
-	v := url.Values{}
-	v.Set("token", c.Token)
-	v.Set("content", param.Content)
-	v.Set("filename", param.Filename)
-	v.Set("channels", param.Channel)
-
-	if param.Filetype != "" {
-		v.Set("filetype", param.Filetype)
-	}
-
-	req, err := http.NewRequest("POST", slackFilesUploadURL, strings.NewReader(v.Encode()))
+	uploadURL, fileID, err := c.GetUploadURLExternalURL(ctx, uParam)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get upload url: %w", err)
 	}
 
-	req = req.WithContext(ctx)
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	res, err := c.HTTPClient.Do(req)
+	err = c.UploadToURL(ctx, param.Filename, uploadURL, content)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to upload file: %w", err)
 	}
-	defer res.Body.Close()
 
-	b, err := io.ReadAll(res.Body)
+	cParam := &CompleteUploadExternalParam{
+		FileID:    fileID,
+		Title:     param.Title,
+		ChannelID: param.ChannelID,
+	}
+
+	err = c.CompleteUploadExternal(ctx, cParam)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to complete upload: %w", err)
 	}
 
-	c.Logger.Debug("request", "url", req.URL.String(), "method", req.Method, "header", req.Header, "status", res.StatusCode, "body", b)
-
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to read res.Body and the status code of the response from slack was not 200; body: %s", b)
-	}
-
-	apiRes := apiFilesUploadRes{}
-	err = json.Unmarshal(b, &apiRes)
-	if err != nil {
-		return fmt.Errorf("response returned from slack is not json: %w", err)
-	}
-
-	if !apiRes.OK {
-		return fmt.Errorf("response has failed; body: %s", b)
-	}
 	return nil
 }
 

@@ -69,7 +69,8 @@ func (c *CLI) Run(args []string) int {
 	flags := flag.NewFlagSet("notify_slack", flag.ContinueOnError)
 	flags.SetOutput(c.errStream)
 
-	flags.StringVar(&c.conf.PrimaryChannel, "channel", "", "specify channel (unavailable for new Incoming Webhooks)")
+	flags.StringVar(&c.conf.Channel, "channel", "", "specify channel (unavailable for new Incoming Webhooks)")
+	flags.StringVar(&c.conf.ChannelID, "channel-id", "", "specify channel id (for uploading a file)")
 	flags.StringVar(&c.conf.SlackURL, "slack-url", "", "slack url (Incoming Webhooks URL)")
 	flags.StringVar(&c.conf.Token, "token", "", "token (for uploading to snippet)")
 	flags.StringVar(&c.conf.Username, "username", "", "specify username (unavailable for new Incoming Webhooks)")
@@ -178,10 +179,7 @@ func (c *CLI) Run(args []string) int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
-	channel := c.conf.PrimaryChannel
-	if channel == "" {
-		channel = c.conf.Channel
-	}
+	channel := c.conf.Channel
 
 	param := &slack.PostTextParam{
 		Channel:   channel,
@@ -216,18 +214,8 @@ func (c *CLI) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filetype string) error {
-	channel := c.conf.PrimaryChannel
-	if channel == "" {
-		channel = c.conf.SnippetChannel
-	}
-	if channel == "" {
-		channel = c.conf.Channel
-	}
-
-	if channel == "" {
-		return fmt.Errorf("must specify channel for uploading to snippet")
-	}
+func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snippetType string) error {
+	channelID := c.conf.ChannelID
 
 	var reader io.ReadCloser
 	if filename == "" {
@@ -254,12 +242,12 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, filet
 	}
 
 	param := &slack.PostFileParam{
-		Channel:  channel,
-		Filename: uploadFilename,
-		Content:  string(content),
-		Filetype: filetype,
+		ChannelID:   channelID,
+		Filename:    uploadFilename,
+		SnippetType: snippetType,
 	}
-	err = c.sClient.PostFile(ctx, param)
+
+	err = c.sClient.PostFile(ctx, param, content)
 	if err != nil {
 		return err
 	}
