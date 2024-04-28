@@ -11,7 +11,7 @@
 
 ### Changed
 
-* update Go version
+* update Go version (require Go 1.22.2 or higher)
 * update dependent libraries
 * update README
 
