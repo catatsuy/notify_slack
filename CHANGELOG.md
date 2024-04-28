@@ -4,9 +4,10 @@
 
 ### Breaking Changes
 
-- **API Deprecation**: As per [Slack's latest API update](https://api.slack.com/changelog/2024-04-a-better-way-to-upload-files-is-here-to-stay), `files.upload` is now deprecated. We have updated our tool to use the new APIs, `files.getUploadURLExternal` and `files.completeUploadExternal`.
-- **Channel Specification**: It is no longer possible to specify a `channel` for file uploads. You must now use `channel-id`.
-- **Filetype Option Update**: The `-filetype` option has been modified. Please use `-snippet-type` instead for specifying the type of file when uploading to a snippet.
+* As per [Slack's latest API update](https://api.slack.com/changelog/2024-04-a-better-way-to-upload-files-is-here-to-stay), `files.upload` is now deprecated. We have updated our tool to use the new APIs, `files.getUploadURLExternal` and `files.completeUploadExternal`.
+* It is no longer possible to specify a `channel` for file uploads. You must now use `channel-id`.
+* The `snippet_channel` setting in TOML files and the `NOTIFY_SLACK_SNIPPET_CHANNEL` environment variable have been deprecated and are no longer supported.
+* The `-filetype` option has been modified. Please use `-snippet-type` instead for specifying the type of file when uploading to a snippet.
 
 ### Changed
 
