@@ -9,6 +9,10 @@
 * The `snippet_channel` setting in TOML files and the `NOTIFY_SLACK_SNIPPET_CHANNEL` environment variable have been deprecated and are no longer supported.
 * The `-filetype` option has been modified. Please use `-snippet-type` instead for specifying the type of file when uploading to a snippet.
 
+### Added
+
+- A new `-debug` option has been added for development.
+
 ### Changed
 
 * update Go version (require Go 1.22.2 or higher)
