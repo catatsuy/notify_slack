@@ -104,7 +104,7 @@ icon_emoji = ":rocket:"
 interval = "1s"
 ```
 
-Note:
+### Note
 
   * You will need to specify a url if you want to post messages to Slack as text
     * You can use the following options to customize your message when posting to Slack as text: `channel`, `username`, `icon_emoji`, and `interval`.
@@ -114,7 +114,7 @@ Note:
     * The `username` and `icon_emoji` options will be ignored when posting a file as a snippet to Slack.
     * For instructions on how to create a token, please see the next section.
     * You cannot specify a channel because the slack api support only the `channel_id`.
-    * If you don't specify `channel_id`, the file will be private. So, if you need to post a file public, you must specify `channel_id`.
+    * If you don't specify `channel_id`, the file will be private. So, **if you need to post a file public, you must specify `channel_id`**.
     * The Slack API can cause delays, so posting might take longer.
 
 ### How to create a token
