@@ -1,6 +1,6 @@
 # Change Log
 
-## [v0.5.0] - 
+## [v0.5.0] - 2024-04-28
 
 ### Breaking Changes
 
