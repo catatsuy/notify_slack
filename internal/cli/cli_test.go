@@ -28,7 +28,7 @@ func (c *fakeSlackClient) PostText(ctx context.Context, param *slack.PostTextPar
 
 func TestRun_versionFlg(t *testing.T) {
 	outStream, errStream, inputStream := new(bytes.Buffer), new(bytes.Buffer), new(bytes.Buffer)
-	cl := NewCLI(outStream, errStream, inputStream)
+	cl := NewCLI(outStream, errStream, inputStream, true)
 
 	args := strings.Split("notify_slack -version", " ")
 	status := cl.Run(args)

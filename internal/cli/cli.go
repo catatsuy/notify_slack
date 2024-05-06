@@ -16,7 +16,6 @@ import (
 	"github.com/catatsuy/notify_slack/internal/config"
 	"github.com/catatsuy/notify_slack/internal/slack"
 	"github.com/catatsuy/notify_slack/internal/throttle"
-	"golang.org/x/term"
 )
 
 var (
@@ -33,13 +32,15 @@ type CLI struct {
 	outStream, errStream io.Writer
 	inputStream          io.Reader
 
+	isStdinTerminal bool
+
 	sClient    slack.Slack
 	conf       *config.Config
 	appVersion string
 }
 
-func NewCLI(outStream, errStream io.Writer, inputStream io.Reader) *CLI {
-	return &CLI{appVersion: version(), outStream: outStream, errStream: errStream, inputStream: inputStream}
+func NewCLI(outStream, errStream io.Writer, inputStream io.Reader, isStdinTerminal bool) *CLI {
+	return &CLI{appVersion: version(), outStream: outStream, errStream: errStream, inputStream: inputStream, isStdinTerminal: isStdinTerminal}
 }
 
 func version() string {
@@ -113,7 +114,7 @@ func (c *CLI) Run(args []string) int {
 			fmt.Fprintln(c.errStream, "You cannot pass multiple files")
 			return ExitCodeParseFlagError
 		}
-	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+	} else if c.isStdinTerminal {
 		fmt.Fprintln(c.errStream, "No input file specified")
 		return ExitCodeFail
 	}
