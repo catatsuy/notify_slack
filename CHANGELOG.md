@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.5.1] - 2024-06-08
+
+### Changed
+
+* update Go version
+* update dependent libraries
+
 ## [v0.5.0] - 2024-04-28
 
 ### Breaking Changes
