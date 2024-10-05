@@ -117,35 +117,13 @@ interval = "1s"
     * If you don't specify `channel_id`, the file will be private. So, **if you need to post a file public, you must specify `channel_id`**.
     * The Slack API can cause delays, so posting might take longer.
 
-### How to create a token
+### Getting Your Slack API Token
 
 You need to create a token if you use snippet uploading mode.
 
-#### Create New App
+For the most up-to-date and easy-to-follow instructions on how to obtain your Slack API bot token, please refer to the official Slack guide:
 
-To create a new app and generate a token for use with the Slack API, go to https://api.slack.com/apps and follow these steps:
-
-1. click `Create New App` and click `From scratch`
-2. input application name to `App Name`
-3. select your workspace on `Pick a workspace to develop your app in:`
-4. click `Create App`
-
-#### Basic Information
-
-1. click `Permissions` on `Add features and functionality`
-2. select `files:write` on `Scopes` and click `Save Changes`. You are able to choose `Bot Token Scopes` or `User Token Scopes`
-
-#### OAuth & Permissions
-
-1. click `Install to Workspace` on `OAuth Tokens for Your Workspace`
-2. install your app
-3. copy `OAuth Access Token` beginning with `xoxp-` or `Bot User OAuth Access Token` beginning with `xoxb-`
-
-#### Add apps
-
-1. click channel name on the channel which you want to post
-2. click `Integrations` and `Add an App` in `Apps`
-3. choose your app
+[How to quickly get and use a Slack API bot token | Slack](https://api.slack.com/tutorials/tracks/getting-a-token)
 
 ### (Advanced) Environment Variables
 
