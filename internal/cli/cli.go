@@ -142,6 +142,8 @@ func (c *CLI) Run(args []string) int {
 		logger = slog.New(slog.NewTextHandler(c.errStream, nil))
 	}
 
+	ctx := context.Background()
+
 	if filename != "" || snippetMode {
 		if c.conf.Token == "" {
 			fmt.Fprintln(c.errStream, "must specify Slack token for uploading to snippet")
@@ -154,7 +156,7 @@ func (c *CLI) Run(args []string) int {
 			return ExitCodeFail
 		}
 
-		err := c.uploadSnippet(context.Background(), filename, uploadFilename, filetype)
+		err := c.uploadSnippet(ctx, filename, uploadFilename, filetype)
 		if err != nil {
 			fmt.Fprintln(c.errStream, err)
 			return ExitCodeFail
@@ -178,7 +180,7 @@ func (c *CLI) Run(args []string) int {
 
 	ex := throttle.NewExec(copyStdin)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
 	channel := c.conf.Channel
