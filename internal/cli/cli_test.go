@@ -50,7 +50,7 @@ func TestUploadSnippet(t *testing.T) {
 	}
 
 	cl.conf.ChannelID = "C12345678"
-	err := cl.uploadSnippet(context.Background(), "testdata/nofile.txt", "", "")
+	err := cl.uploadSnippet(t.Context(), "testdata/nofile.txt", "", "")
 	want := "no such file or directory"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Errorf("error = %v; want %q", err, want)
@@ -72,7 +72,7 @@ func TestUploadSnippet(t *testing.T) {
 		},
 	}
 
-	err = cl.uploadSnippet(context.Background(), "testdata/upload.txt", "", "")
+	err = cl.uploadSnippet(t.Context(), "testdata/upload.txt", "", "")
 	if err != nil {
 		t.Errorf("expected nil; got %v", err)
 	}
@@ -93,7 +93,7 @@ func TestUploadSnippet(t *testing.T) {
 		},
 	}
 
-	err = cl.uploadSnippet(context.Background(), "testdata/upload.txt", "overwrite.txt", "")
+	err = cl.uploadSnippet(t.Context(), "testdata/upload.txt", "overwrite.txt", "")
 	if err != nil {
 		t.Errorf("expected nil; got %v", err)
 	}
@@ -123,7 +123,7 @@ func TestUploadSnippet(t *testing.T) {
 		},
 	}
 
-	err = cl.uploadSnippet(context.Background(), "testdata/upload.txt", "overwrite.txt", "diff")
+	err = cl.uploadSnippet(t.Context(), "testdata/upload.txt", "overwrite.txt", "diff")
 	if err != nil {
 		t.Errorf("expected nil; got %v", err)
 	}
