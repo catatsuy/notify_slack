@@ -1,7 +1,6 @@
 package slack_test
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -89,7 +88,7 @@ func TestPostText_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.PostText(context.Background(), param)
+	err = c.PostText(t.Context(), param)
 
 	if err != nil {
 		t.Fatal(err)
@@ -123,7 +122,7 @@ func TestPostText_Fail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.PostText(context.Background(), param)
+	err = c.PostText(t.Context(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -189,7 +188,7 @@ func TestPostFile_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	uploadURL, fileID, err := c.GetUploadURLExternalURL(context.Background(), param)
+	uploadURL, fileID, err := c.GetUploadURLExternalURL(t.Context(), param)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,7 +230,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), nil)
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), nil)
 	expectedErrorPart = "provide filename and length"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -239,7 +238,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), &GetUploadURLExternalResParam{})
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), &GetUploadURLExternalResParam{})
 	expectedErrorPart = "provide filename"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -247,7 +246,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 		t.Fatalf("expected %q to contain %q", err.Error(), expectedErrorPart)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), &GetUploadURLExternalResParam{Filename: "test.txt"})
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), &GetUploadURLExternalResParam{Filename: "test.txt"})
 	expectedErrorPart = "provide length"
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -318,7 +317,7 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -396,7 +395,7 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -469,7 +468,7 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, err = c.GetUploadURLExternalURL(context.Background(), param)
+	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
@@ -528,7 +527,7 @@ func TestUploadToURL_success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "testdata/upload.txt", testAPIServer.URL, b)
+	err = c.UploadToURL(t.Context(), "testdata/upload.txt", testAPIServer.URL, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -553,7 +552,7 @@ func TestUploadToURL_fail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.UploadToURL(context.Background(), "upload.txt", testAPIServer.URL, b)
+	err = c.UploadToURL(t.Context(), "upload.txt", testAPIServer.URL, b)
 	if err == nil {
 		t.Fatal("expected error, but nothing was returned")
 	}
@@ -618,7 +617,7 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 		Title:     "file-title",
 		ChannelID: "C0NF841BK",
 	}
-	err = c.CompleteUploadExternal(context.Background(), param)
+	err = c.CompleteUploadExternal(t.Context(), param)
 	if err != nil {
 		t.Fatal(err)
 	}

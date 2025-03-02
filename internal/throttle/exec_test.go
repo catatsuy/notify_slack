@@ -15,7 +15,7 @@ func TestRun_pipeClose(t *testing.T) {
 
 	ex := NewExec(pr)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	testC := make(chan time.Time)
 	count := 0
 	fc := make(chan struct{})
@@ -110,7 +110,7 @@ func TestRun_contextDone(t *testing.T) {
 
 	ex := NewExec(pr)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	testC := make(chan time.Time)
 	count := 0
 	fc := make(chan struct{})
