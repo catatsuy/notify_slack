@@ -12,6 +12,8 @@ import (
 
 type Exec struct {
 	reader *bufio.Reader
+	rc     io.ReadCloser
+	pr     *io.PipeReader
 	writer *bytes.Buffer
 	exitC  chan struct{}
 	mu     sync.Mutex
@@ -19,13 +21,20 @@ type Exec struct {
 
 func NewExec(input io.Reader) *Exec {
 	reader := bufio.NewReader(input)
-
-	return &Exec{
+	ex := &Exec{
 		reader: reader,
 		writer: new(bytes.Buffer),
 		exitC:  make(chan struct{}),
 		mu:     sync.Mutex{},
 	}
+	// capture closers if present
+	if rc, ok := input.(io.ReadCloser); ok {
+		ex.rc = rc
+	}
+	if pr, ok := input.(*io.PipeReader); ok {
+		ex.pr = pr
+	}
+	return ex
 }
 
 func (ex *Exec) write(p []byte) (n int, err error) {
@@ -79,6 +88,7 @@ L:
 		case <-interval:
 			flushCallback(ctx, ex.flush())
 		case <-ctx.Done():
+			ex.cancelReader(ctx.Err())
 			doneCallback(ctx, ex.flush())
 			break L
 		case <-ex.Wait():
@@ -94,4 +104,17 @@ func (ex *Exec) Wait() <-chan struct{} {
 
 func (ex *Exec) flush() string {
 	return ex.stringAndReset()
+}
+
+// cancelReader closes the underlying reader, if possible,
+// so a blocked ReadLine can return on context cancellation.
+func (ex *Exec) cancelReader(err error) {
+	if ex.pr != nil {
+		ex.pr.CloseWithError(err)
+		return
+	}
+
+	if ex.rc != nil {
+		ex.rc.Close()
+	}
 }
