@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"sync"
 	"time"
@@ -56,20 +57,17 @@ func (ex *Exec) Start(ctx context.Context, interval <-chan time.Time, flushCallb
 		for {
 			line, _, err := ex.reader.ReadLine()
 			if err != nil {
-				if err == io.EOF {
+				if errors.Is(err, io.EOF) ||
+					errors.Is(err, io.ErrClosedPipe) ||
+					errors.Is(err, context.Canceled) {
 					break
 				}
-				panic(err)
-			}
-			_, err = ex.write(line)
-			if err != nil {
+
 				panic(err)
 			}
 
-			err = ex.writeByte('\n')
-			if err != nil {
-				panic(err)
-			}
+			ex.write(line)
+			ex.writeByte('\n')
 		}
 		// if notify_slack receives EOF, this function will exit.
 		close(ex.exitC)
