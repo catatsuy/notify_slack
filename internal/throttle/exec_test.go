@@ -10,9 +10,7 @@ import (
 
 func TestRun_pipeClose(t *testing.T) {
 	pr, pw := io.Pipe()
-
 	output := new(bytes.Buffer)
-
 	ex := NewExec(pr)
 
 	ctx, cancel := context.WithCancel(t.Context())
@@ -26,16 +24,12 @@ func TestRun_pipeClose(t *testing.T) {
 			// to random fail from Go 1.12 or later
 			time.Sleep(2 * time.Millisecond)
 		}()
-
 		count++
-
 		output.WriteString(s)
-
 		return nil
 	}
 
 	doneCount := 0
-
 	doneCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			// If goroutine is not used, tests cannot be run multiple times
@@ -59,27 +53,24 @@ func TestRun_pipeClose(t *testing.T) {
 
 	testC <- time.Time{}
 	<-fc
-
 	if count != 1 {
-		t.Error("the flushCallback function has not been called")
+		t.Fatal("the flushCallback function has not been called")
 	}
 
 	expected := []byte("abcd\nefgh\n")
 	pw.Write(expected)
 
-	if b := output.Bytes(); b != nil {
-		t.Errorf("will not be written if it is not flushed %s", b)
+	if b := output.Bytes(); len(b) != 0 {
+		t.Fatalf("will not be written if it is not flushed %q", b)
 	}
 
 	testC <- time.Time{}
 	<-fc
-
 	if count != 2 {
-		t.Errorf("the flushCallback function has not been called")
+		t.Fatalf("the flushCallback function has not been called")
 	}
-
 	if b := output.Bytes(); !bytes.Equal(b, expected) {
-		t.Errorf("It will be written %q; but %q", expected, b)
+		t.Fatalf("It will be written %q; but %q", expected, b)
 	}
 
 	output.Reset()
@@ -95,19 +86,16 @@ func TestRun_pipeClose(t *testing.T) {
 	<-fc
 
 	if doneCount != 1 {
-		t.Errorf("the doneCallback function has not been called")
+		t.Fatalf("the doneCallback function has not been called")
 	}
-
 	if b := output.Bytes(); !bytes.Equal(b, expected) {
-		t.Errorf("It will be written %q; but %q", expected, b)
+		t.Fatalf("It will be written %q; but %q", expected, b)
 	}
 }
 
 func TestRun_contextDone(t *testing.T) {
 	pr, pw := io.Pipe()
-
 	output := new(bytes.Buffer)
-
 	ex := NewExec(pr)
 
 	ctx, cancel := context.WithCancel(t.Context())
@@ -121,16 +109,12 @@ func TestRun_contextDone(t *testing.T) {
 			// to random fail from Go 1.12 or later
 			time.Sleep(2 * time.Millisecond)
 		}()
-
 		count++
-
 		output.WriteString(s)
-
 		return nil
 	}
 
 	doneCount := 0
-
 	doneCallback := func(ctx context.Context, s string) error {
 		defer func() {
 			// If goroutine is not used, tests cannot be run multiple times
@@ -138,11 +122,8 @@ func TestRun_contextDone(t *testing.T) {
 				fc <- struct{}{}
 			}()
 		}()
-
 		doneCount++
-
 		output.WriteString(s)
-
 		return nil
 	}
 
@@ -154,27 +135,23 @@ func TestRun_contextDone(t *testing.T) {
 
 	testC <- time.Time{}
 	<-fc
-
 	if count != 1 {
-		t.Error("the flushCallback function has not been called")
+		t.Fatal("the flushCallback function has not been called")
 	}
 
 	expected := []byte("abcd\nefgh\n")
 	pw.Write(expected)
-
-	if b := output.Bytes(); b != nil {
-		t.Errorf("will not be written if it is not flushed %s", b)
+	if b := output.Bytes(); len(b) != 0 {
+		t.Fatalf("will not be written if it is not flushed %q", b)
 	}
 
 	testC <- time.Time{}
 	<-fc
-
 	if count != 2 {
-		t.Errorf("the flushCallback function has not been called")
+		t.Fatalf("the flushCallback function has not been called")
 	}
-
 	if b := output.Bytes(); !bytes.Equal(b, expected) {
-		t.Errorf("It will be written %q; but %q", expected, b)
+		t.Fatalf("It will be written %q; but %q", expected, b)
 	}
 
 	output.Reset()
@@ -184,14 +161,12 @@ func TestRun_contextDone(t *testing.T) {
 
 	cancel()
 	<-exitC
-
 	<-fc
 
 	if doneCount != 1 {
-		t.Errorf("the doneCallback function has not been called")
+		t.Fatalf("the doneCallback function has not been called")
 	}
-
 	if b := output.Bytes(); !bytes.Equal(b, expected) {
-		t.Errorf("It will be written %q; but %q", expected, b)
+		t.Fatalf("It will be written %q; but %q", expected, b)
 	}
 }
