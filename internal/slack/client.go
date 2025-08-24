@@ -116,7 +116,7 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 
 	b, _ := json.Marshal(param)
 
-	req, err := c.newRequest(ctx, "POST", bytes.NewBuffer(b))
+	req, err := c.newRequest(ctx, http.MethodPost, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
