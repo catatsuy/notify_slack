@@ -282,7 +282,7 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snipp
 		return err
 	}
 	if len(content) > int(maxSnippetBytes) {
-		return fmt.Errorf("input exceeds %d bytes; snippet uploads are capped at %d bytes", maxSnippetBytes, maxSnippetBytes)
+		return fmt.Errorf("input is %d bytes; snippet uploads are capped at %d bytes", len(content), maxSnippetBytes)
 	}
 
 	if uploadFilename == "" {
