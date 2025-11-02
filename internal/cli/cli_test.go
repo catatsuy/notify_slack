@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -127,4 +128,31 @@ func TestUploadSnippet(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected nil; got %v", err)
 	}
+
+	t.Run("rejects oversized file", func(t *testing.T) {
+		oldLimit := maxSnippetBytes
+		maxSnippetBytes = 10
+		t.Cleanup(func() {
+			maxSnippetBytes = oldLimit
+		})
+
+		largeFile, err := os.CreateTemp(t.TempDir(), "oversize-*.txt")
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+
+		oversized := make([]byte, int(maxSnippetBytes)+1)
+		if _, err := largeFile.Write(oversized); err != nil {
+			t.Fatalf("failed to write oversize data: %v", err)
+		}
+		if err := largeFile.Close(); err != nil {
+			t.Fatalf("failed to close oversize temp file: %v", err)
+		}
+
+		if err := cl.uploadSnippet(t.Context(), largeFile.Name(), "", ""); err == nil {
+			t.Fatal("expected error for oversize upload, got nil")
+		} else if !strings.Contains(err.Error(), "capped") {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
 }
