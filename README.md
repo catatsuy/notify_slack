@@ -6,6 +6,10 @@ https://user-images.githubusercontent.com/1249910/155869750-48f7500f-4481-49b6-9
 
 (same movie) https://www.youtube.com/watch?v=wmKSr9Aoz-Y
 
+## Takumi, the AI offensive security engineer
+
+<a href="https://flatt.tech/oss/gmo/trampoline" target="_blank"><img src="https://flatt.tech/assets/images/badges/gmo-oss.svg" height="24px"/></a>
+
 ## Installation
 
 It is recommended that you use the binaries available on [GitHub Releases](https://github.com/catatsuy/notify_slack/releases). It is advisable to download and use the latest version.
