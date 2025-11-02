@@ -20,6 +20,10 @@ import (
 
 var (
 	Version string
+
+	// Slack's files.upload-style endpoints reject payloads exceeding 1GB.
+	// Enforce the same ceiling locally so we fail before hitting the API.
+	maxSnippetBytes int64 = 1 << 30 // 1 GiB
 )
 
 const (
@@ -258,9 +262,12 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snipp
 	if filename == "" {
 		reader = os.Stdin
 	} else {
-		_, err := os.Stat(filename)
+		info, err := os.Stat(filename)
 		if err != nil {
 			return fmt.Errorf("%s does not exist: %w", filename, err)
+		}
+		if info.Size() > maxSnippetBytes {
+			return fmt.Errorf("%s is %d bytes; snippet uploads are capped at %d bytes", filename, info.Size(), maxSnippetBytes)
 		}
 		reader, err = os.Open(filename)
 		if err != nil {
@@ -269,9 +276,13 @@ func (c *CLI) uploadSnippet(ctx context.Context, filename, uploadFilename, snipp
 	}
 	defer reader.Close()
 
-	content, err := io.ReadAll(reader)
+	limited := io.LimitReader(reader, maxSnippetBytes+1)
+	content, err := io.ReadAll(limited)
 	if err != nil {
 		return err
+	}
+	if len(content) > int(maxSnippetBytes) {
+		return fmt.Errorf("input is %d bytes; snippet uploads are capped at %d bytes", len(content), maxSnippetBytes)
 	}
 
 	if uploadFilename == "" {
