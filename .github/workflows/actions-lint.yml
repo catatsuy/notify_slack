@@ -1,0 +1,36 @@
+name: GitHub Actions Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.26.1
+
+      - name: Install ghalint and actionlint
+        run: |
+          go install github.com/suzuki-shunsuke/ghalint/cmd/ghalint@v1.5.5
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.11
+
+      - name: Run ghalint
+        run: ghalint -c ghalint.yaml run
+
+      - name: Run actionlint
+        run: actionlint
