@@ -15,6 +15,7 @@ jobs:
   govulncheck_job:
     runs-on: ubuntu-latest
     name: Run govulncheck
+    timeout-minutes: 20
     steps:
       - id: govulncheck
         uses: golang/govulncheck-action@v1
