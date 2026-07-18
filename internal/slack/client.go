@@ -126,7 +126,6 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	c.Logger.Debug("request",
 		slog.String("url", req.URL.String()),
 		slog.String("method", req.Method),
-		slog.Any("header", sanitizeHeaders(req.Header)),
 	)
 
 	res, err := c.HTTPClient.Do(req)
@@ -143,7 +142,6 @@ func (c *Client) PostText(ctx context.Context, param *PostTextParam) error {
 	c.Logger.Debug("request",
 		slog.String("url", req.URL.String()),
 		slog.String("method", req.Method),
-		slog.Any("header", sanitizeHeaders(req.Header)),
 		slog.Int("status", res.StatusCode),
 		slog.String("body", string(body)),
 	)
@@ -353,7 +351,6 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, params *CompleteUpl
 	c.Logger.Debug("request",
 		slog.String("url", req.URL.String()),
 		slog.String("method", req.Method),
-		slog.Any("header", sanitizeHeaders(req.Header)),
 		slog.Int("status", res.StatusCode),
 		slog.String("body", string(b)),
 	)
@@ -373,41 +370,4 @@ func (c *Client) CompleteUploadExternal(ctx context.Context, params *CompleteUpl
 	}
 
 	return nil
-}
-
-func sanitizeHeaders(header http.Header) http.Header {
-	if header == nil {
-		return nil
-	}
-
-	sanitized := header.Clone()
-
-	for key := range sanitized {
-		if isSensitiveHeader(key) {
-			values := sanitized[key]
-			for i := range values {
-				values[i] = maskSensitiveValue(values[i])
-			}
-		}
-	}
-
-	return sanitized
-}
-
-func isSensitiveHeader(headerKey string) bool {
-	return strings.EqualFold(headerKey, "Authorization")
-}
-
-func maskSensitiveValue(value string) string {
-	if value == "" {
-		return value
-	}
-
-	const placeholder = "[redacted]"
-
-	if strings.HasPrefix(strings.ToLower(value), "bearer ") {
-		return "Bearer " + placeholder
-	}
-
-	return placeholder
 }
