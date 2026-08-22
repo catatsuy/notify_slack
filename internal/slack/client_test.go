@@ -17,6 +17,17 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func assertSlackAPIRequest(t *testing.T, r *http.Request) {
+	t.Helper()
+
+	if r.TLS == nil {
+		t.Error("expected HTTPS request")
+	}
+	if r.URL.RawQuery != "" {
+		t.Errorf("expected no query, but got %q", r.URL.RawQuery)
+	}
+}
+
 func TestNewClient_badURL(t *testing.T) {
 	_, err := NewClient("", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err == nil {
@@ -148,7 +159,9 @@ func TestPostFile_Success(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -212,7 +225,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 
 	slackToken := "slack-token"
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		panic("unexpected call")
 	})
 
@@ -267,7 +280,9 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -345,7 +360,9 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -422,7 +439,9 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -569,7 +588,9 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 
 	slackToken := "slack-token"
 
-	muxAPI.HandleFunc("/api/files.completeUploadExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.completeUploadExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
