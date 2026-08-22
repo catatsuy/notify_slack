@@ -1,7 +1,7 @@
 package slack_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 	"log/slog"
 	"net/http"
@@ -16,6 +16,17 @@ import (
 	. "github.com/catatsuy/notify_slack/internal/slack"
 	"github.com/google/go-cmp/cmp"
 )
+
+func assertSlackAPIRequest(t *testing.T, r *http.Request) {
+	t.Helper()
+
+	if r.TLS == nil {
+		t.Error("expected HTTPS request")
+	}
+	if r.URL.RawQuery != "" {
+		t.Errorf("expected no query, but got %q", r.URL.RawQuery)
+	}
+}
 
 func TestNewClient_badURL(t *testing.T) {
 	_, err := NewClient("", slog.New(slog.NewTextHandler(io.Discard, nil)))
@@ -47,8 +58,8 @@ func TestNewClient_parsesURL(t *testing.T) {
 
 func TestPostText_Success(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	param := &PostTextParam{
 		Channel:   "test-channel",
@@ -87,6 +98,7 @@ func TestPostText_Success(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	err = c.PostText(t.Context(), param)
 
@@ -97,8 +109,8 @@ func TestPostText_Success(t *testing.T) {
 
 func TestPostText_Fail(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	param := &PostTextParam{
 		Channel:   "test2-channel",
@@ -121,6 +133,7 @@ func TestPostText_Fail(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	err = c.PostText(t.Context(), param)
 
@@ -136,8 +149,8 @@ func TestPostText_Fail(t *testing.T) {
 
 func TestPostFile_Success(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
@@ -146,7 +159,9 @@ func TestPostFile_Success(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -181,12 +196,11 @@ func TestPostFile_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/files_get_upload_url_external_ok.json")
 	})
 
-	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
-
 	c, err := NewClientForPostFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	uploadURL, fileID, err := c.GetUploadURLExternalURL(t.Context(), param)
 	if err != nil {
@@ -206,16 +220,14 @@ func TestPostFile_Success(t *testing.T) {
 
 func TestPostFile_FailCallFunc(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		panic("unexpected call")
 	})
-
-	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
 
 	_, err := NewClientForPostFile("", slog.New(slog.NewTextHandler(io.Discard, nil)))
 	expectedErrorPart := "provide Slack token"
@@ -229,6 +241,7 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	_, _, err = c.GetUploadURLExternalURL(t.Context(), nil)
 	expectedErrorPart = "provide filename and length"
@@ -257,8 +270,8 @@ func TestPostFile_FailCallFunc(t *testing.T) {
 
 func TestPostFile_FailAPINotOK(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
@@ -267,7 +280,9 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -310,12 +325,11 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 		w.Write(b)
 	})
 
-	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
-
 	c, err := NewClientForPostFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
@@ -336,8 +350,8 @@ func TestPostFile_FailAPINotOK(t *testing.T) {
 
 func TestPostFile_FailAPIStatusOK(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
@@ -346,7 +360,9 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -388,12 +404,11 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 		w.Write(b)
 	})
 
-	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
-
 	c, err := NewClientForPostFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
@@ -414,8 +429,8 @@ func TestPostFile_FailAPIStatusOK(t *testing.T) {
 
 func TestPostFile_FailBrokenJSON(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
@@ -424,7 +439,9 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 		Length:   100,
 	}
 
-	muxAPI.HandleFunc("/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.getUploadURLExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -461,12 +478,11 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 		w.Write([]byte("this is not json"))
 	})
 
-	defer SetFilesGetUploadURLExternalURL(testAPIServer.URL + "/api/files.getUploadURLExternal")()
-
 	c, err := NewClientForPostFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	_, _, err = c.GetUploadURLExternalURL(t.Context(), param)
 
@@ -482,8 +498,8 @@ func TestPostFile_FailBrokenJSON(t *testing.T) {
 
 func TestUploadToURL_success(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
@@ -521,6 +537,7 @@ func TestUploadToURL_success(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	b, err := os.ReadFile("testdata/upload.txt")
 	if err != nil {
@@ -535,8 +552,8 @@ func TestUploadToURL_success(t *testing.T) {
 
 func TestUploadToURL_fail(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	muxAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -546,6 +563,7 @@ func TestUploadToURL_fail(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	b, err := os.ReadFile("testdata/upload.txt")
 	if err != nil {
@@ -565,12 +583,14 @@ func TestUploadToURL_fail(t *testing.T) {
 
 func TestCompleteUploadExternal_Success(t *testing.T) {
 	muxAPI := http.NewServeMux()
-	testAPIServer := httptest.NewServer(muxAPI)
-	defer testAPIServer.Close()
+	testAPIServer := httptest.NewTestServer(t, muxAPI)
+	testHTTPClient := testAPIServer.Client()
 
 	slackToken := "slack-token"
 
-	muxAPI.HandleFunc("/api/files.completeUploadExternal", func(w http.ResponseWriter, r *http.Request) {
+	muxAPI.HandleFunc("POST slack.com/api/files.completeUploadExternal", func(w http.ResponseWriter, r *http.Request) {
+		assertSlackAPIRequest(t, r)
+
 		contentType := r.Header.Get("Content-Type")
 		expectedType := "application/x-www-form-urlencoded"
 		if contentType != expectedType {
@@ -605,12 +625,11 @@ func TestCompleteUploadExternal_Success(t *testing.T) {
 		http.ServeFile(w, r, "testdata/files_complete_upload_external_ok.json")
 	})
 
-	defer SetFilesCompleteUploadExternalURL(testAPIServer.URL + "/api/files.completeUploadExternal")()
-
 	c, err := NewClientForPostFile(slackToken, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.HTTPClient = testHTTPClient
 
 	param := &CompleteUploadExternalParam{
 		FileID:    "file-id",

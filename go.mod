@@ -1,6 +1,6 @@
 module github.com/catatsuy/notify_slack
 
-go 1.25.0
+go 1.27.0
 
 require (
 	github.com/google/go-cmp v0.7.0
