@@ -23,7 +23,6 @@ func TestRun_pipeClose(t *testing.T) {
 		flushCallback := func(ctx context.Context, s string) error {
 			defer func() {
 				fc <- struct{}{}
-				synctest.Wait()
 			}()
 			count++
 			output.WriteString(s)
@@ -60,6 +59,7 @@ func TestRun_pipeClose(t *testing.T) {
 
 		expected := []byte("abcd\nefgh\n")
 		pw.Write(expected)
+		synctest.Wait()
 
 		if b := output.Bytes(); len(b) != 0 {
 			t.Fatalf("will not be written if it is not flushed %q", b)
@@ -109,7 +109,6 @@ func TestRun_contextDone(t *testing.T) {
 		flushCallback := func(ctx context.Context, s string) error {
 			defer func() {
 				fc <- struct{}{}
-				synctest.Wait()
 			}()
 			count++
 			output.WriteString(s)
@@ -143,6 +142,7 @@ func TestRun_contextDone(t *testing.T) {
 
 		expected := []byte("abcd\nefgh\n")
 		pw.Write(expected)
+		synctest.Wait()
 		if b := output.Bytes(); len(b) != 0 {
 			t.Fatalf("will not be written if it is not flushed %q", b)
 		}
